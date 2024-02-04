@@ -63,8 +63,7 @@ static class PipelineSettings extends BasicSettings {
     this.maximumSize = Math.toIntExact(settings.maximumSize());
 //    lookUptable = new HashMap<>();
     this.maxEntries = 512;
-    //NOTE - the lookup table structure is affecting the results, each run is different
-      this.lookUptable=new HashMap<Long, Integer>();//load factor affects the results can also be used with linked HashMap;
+    this.lookUptable=new HashMap<Long, Integer>();//load factor affects the results can also be used with linked HashMap;
     this.pipelineList = settings.pipelineOrder();
     this.pipelineArray = this.pipelineList.split(",");
     this.pipeline_length = this.pipelineArray.length;
