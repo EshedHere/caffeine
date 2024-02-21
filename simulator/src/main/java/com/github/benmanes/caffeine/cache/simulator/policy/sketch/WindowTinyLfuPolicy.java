@@ -28,6 +28,7 @@ import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import com.google.common.base.MoreObjects;
 import com.typesafe.config.Config;
 
@@ -97,6 +98,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+    System.out.println("WindowTinyLfu data "+data);
     policyStats.recordOperation();
     Node node = data.get(key);
     if (node == null) {
@@ -176,6 +178,8 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     if (data.size() > maximumSize) {
       Node victim = headProbation.next;
       Node evict = admittor.admit(candidate.key, victim.key) ? victim : candidate;
+      System.out.println("key evicted from tinylfu "+ evict.key);
+
       data.remove(evict.key);
       evict.remove();
 

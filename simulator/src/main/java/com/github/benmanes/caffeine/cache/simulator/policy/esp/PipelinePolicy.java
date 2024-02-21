@@ -74,7 +74,7 @@ static class PipelineSettings extends BasicSettings {
 
   @Override
   public void record(long key) {
-
+    System.out.println("pipeline data "+lookUptable);
     if(lookUptable.get(key) != null) {
       pipeLineStats.recordOperation();
       pipeLineStats.recordHit();
@@ -97,6 +97,7 @@ static class PipelineSettings extends BasicSettings {
       if(SharedBuffer.getFlag2() ==1) {
 //        System.out.println( "table size before eviction "+lookUptable.size());
         lookUptable.remove(SharedBuffer.getBufferKey(),1);
+//        System.out.println("key evicted from pipeline "+SharedBuffer.getBufferKey());
 //        System.out.println( "table size after eviction "+lookUptable.size());
         pipeLineStats.recordEviction();
       }

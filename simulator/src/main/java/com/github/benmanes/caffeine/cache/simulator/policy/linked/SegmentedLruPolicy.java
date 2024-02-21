@@ -92,6 +92,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+//    System.out.println("SLRU DATA "+data);
     Node node;
     policyStats.recordOperation();
     //if previous block pipeline evicted

@@ -102,6 +102,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+//    System.out.println("LRU DATA "+data);
     Node node = data.get(key);
     admittor.record(key);
     long now = ++tick;
@@ -132,13 +133,10 @@ public class SampledPolicy implements KeyOnlyPolicy {
       policyStats.recordEviction();
 
       if (admittor.admit(candidate.key, victim.key)) {
-
         //move VICTIM to buffer
 //        System.out.println("The victim key from sampled: "+victim.key);
-
         SharedBuffer.insertData(victim);
 //        System.out.println("The victim key read from sampled: "+SharedBuffer.getBufferKey());
-
 //        System.out.println("The victim key is: "+victim.key);
 
         removeFromTable(victim);
