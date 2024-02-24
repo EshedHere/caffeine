@@ -101,7 +101,6 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     Node node = data.get(key);
     if (node == null) {
       onMiss(key);
-      System.out.println("here");
       policyStats.recordMiss();
     } else if (node.status == Status.WINDOW) {
       onWindowHit(node);

@@ -56,6 +56,9 @@ public class SharedBuffer {
   public static synchronized void incCounter(){
     instance.counter++;
   }
+  public static synchronized void resetCounter(){
+    instance.counter=0;
+  }
   public static synchronized int getCounter(){
     return instance.counter;
   }
