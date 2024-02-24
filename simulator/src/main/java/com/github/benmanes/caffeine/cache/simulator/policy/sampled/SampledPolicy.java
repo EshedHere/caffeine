@@ -132,7 +132,6 @@ public class SampledPolicy implements KeyOnlyPolicy {
       List<Node> sample = (policy == EvictionPolicy.RANDOM)
           ? Arrays.asList(table)
           : sampleStrategy.sample(table, candidate, sampleSize, random, policyStats);
-            System.out.println(Arrays.toString(table));
 
       Node victim = policy.select(sample, random, tick);
       policyStats.recordEviction();

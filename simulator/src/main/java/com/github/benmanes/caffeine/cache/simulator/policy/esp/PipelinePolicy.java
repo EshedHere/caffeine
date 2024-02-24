@@ -92,7 +92,6 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
     this.baseNode.key=key;
     SharedBuffer.insertData(this.baseNode);
-    System.out.println(SharedBuffer.getBufferKey());
 
     extCount =0;
     //-------PIPELINE OPERATION-----------
@@ -150,8 +149,10 @@ for (int i = 0; i < this.pipeline_length; i++) {
         if(extCount==i) {
           //If the current block is the last block, evict from the lookup table
           if(i==this.pipeline_length-1) {
+            System.out.println(extCount);
+
             lookUptable.remove(key);
-            System.out.println("Pipeline victim key is" + SharedBuffer.getBufferKey());
+            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
           }
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {
