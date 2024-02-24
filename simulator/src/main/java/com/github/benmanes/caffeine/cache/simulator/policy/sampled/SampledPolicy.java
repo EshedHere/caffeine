@@ -110,7 +110,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
     if (node == null) {
 //      System.out.println(key);
       node = new Node(key, data.size(), now);
-      node = new Node(SharedBuffer.getData(),now);
+      node = new Node(SharedBuffer.getData(),now,data.size());
 
       policyStats.recordOperation();
       policyStats.recordMiss();
@@ -132,6 +132,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
       List<Node> sample = (policy == EvictionPolicy.RANDOM)
           ? Arrays.asList(table)
           : sampleStrategy.sample(table, candidate, sampleSize, random, policyStats);
+            System.out.println(Arrays.toString(table));
+
       Node victim = policy.select(sample, random, tick);
       policyStats.recordEviction();
 
@@ -310,13 +312,17 @@ public class SampledPolicy implements KeyOnlyPolicy {
       this.key = key;
 
       super.key=this.key;
+      super.accessTime=this.accessTime;
     }
-     Node(BaseNode basenode, long tick){
+     Node(BaseNode basenode, long tick,int index){
        this.insertionTime = tick;
        this.accessTime = tick;
        this.key = basenode.key;
        this.recency=basenode.recency;
        super.key=this.key;
+       super.accessTime=this.accessTime;
+       this.index=index;
+       super.index=this.index;
 
      }
 

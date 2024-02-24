@@ -89,7 +89,11 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+
     this.baseNode.key=key;
+    SharedBuffer.insertData(this.baseNode);
+    System.out.println(SharedBuffer.getBufferKey());
+
     extCount =0;
     //-------PIPELINE OPERATION-----------
     //1.check if hit
@@ -138,7 +142,6 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       pipelinePolicies.get(0).record(event);
     }
     //----------MAIN PIPELINE LOOP----------
-SharedBuffer.insertData(this.baseNode);
 for (int i = 0; i < this.pipeline_length; i++) {
         //Read from the SharedBuffer
 
