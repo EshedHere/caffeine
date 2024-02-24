@@ -52,7 +52,8 @@ public final class TinyLfu implements KeyOnlyAdmittor {
       this.threshold = settings.tinyLfu().jitter().threshold();
       this.probability = settings.tinyLfu().jitter().probability();
     } else {
-      this.threshold = Integer.MAX_VALUE;
+//      this.threshold = Integer.MAX_VALUE;
+      this.threshold = 1;
       this.probability = 1.0;
     }
   }

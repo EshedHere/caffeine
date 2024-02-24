@@ -178,6 +178,8 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
       Node victim = headProbation.next;
 
       Node evict = admittor.admit(candidate.key, victim.key) ? victim : candidate;
+//      Node evict = admittor.admit(candidate.key, victim.key) ? candidate : victim;
+
       System.out.println("WindowTinyLFU chose between "+candidate.key+" and "+victim.key+" and evicted " + evict.key);
       data.remove(evict.key);
       evict.remove();
