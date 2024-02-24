@@ -97,16 +97,19 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
     //------------ON HIT----------
     if(lookUptable.get(key) != null) {
+      System.out.println("Pipeline HIT key is " + key);
+
       pipeLineStats.recordOperation();
       pipeLineStats.recordHit();
       int blockIndex = lookUptable.get(key);
       if (pipelinePolicies.get(blockIndex) instanceof KeyOnlyPolicy) {
         // Handle the event as a key-only event
-//        ((KeyOnlyPolicy) pipelinePolicies.get(blockIndex)).data.remove(key);
+        ((KeyOnlyPolicy) pipelinePolicies.get(blockIndex)).record(key);
       } else {
         // Handle the event for a generic policy
         AccessEvent event = new AccessEvent(key/* Additional details here */);
 //        pipelinePolicies.get(blockIndex).data.remove(event.key);
+
       }
 
       //PROPAGATION
@@ -116,34 +119,25 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       lookUptable.put(key, 1);
       pipeLineStats.recordAdmission();
       pipeLineStats.recordOperation();
+      //print miss key
+//      System.out.println("Pipeline miss key is " + key);
       pipeLineStats.recordMiss();
       }
-    //------------PIPELINE OPERATION----------
-    //1. First block always admits
-    if (pipelinePolicies.get(0) instanceof KeyOnlyPolicy) {
-      // Handle the event as a key-only event
-      ((KeyOnlyPolicy) pipelinePolicies.get(0)).record(key);
-    } else {
-      // Handle the event for a generic policy
-      // If Policy expects a more detailed event, construct it before recording
-      AccessEvent event = new AccessEvent(key/* Additional details here */);
-      pipelinePolicies.get(0).record(event);
-    }
-    //----------MAIN PIPELINE LOOP----------
-for (int i = 0; i < this.pipeline_length; i++) {
-        //Read from the SharedBuffer
 
+    //----------MAIN PIPELINE LOOP----------
+for (int i = 0; i <= this.pipeline_length; i++) {
+        //Read from the SharedBuffer
         extCount = SharedBuffer.getCounter();
         //If the SharedBuffer is increased by 1, activate the next block
 //        System.out.println(extCount);
 
   if(extCount==i) {
+    lookUptable.put(key, i);
           //If the current block is the last block, evict from the lookup table
           if(i==this.pipeline_length-1) {
 //            System.out.println(extCount);
-
             lookUptable.remove(key);
-            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
+//            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
           }
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {

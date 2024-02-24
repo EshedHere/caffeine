@@ -57,7 +57,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   static final Node UNLINKED = new Node();
 
-  final Long2ObjectMap<Node> data;
+  public final Long2ObjectMap<Node> data;
   public PolicyStats policyStats;
   final Node headProtected;
   final Node headProbation;
@@ -94,12 +94,6 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   public void record(long key) {
     Node node;
     policyStats.recordOperation();
-    //if previous block pipeline evicted
-//      onMiss(SharedBuffer.getBufferKey());
-//      Node testNode= new Node(SharedBuffer.getData());
-//      System.out.println("The key read from the segmented buffer is: "+SharedBuffer.getBufferKey());
-//       node = new Node(SharedBuffer.getData());
-//      data.get(node.key);
 
        node = data.get(key);
        node = new Node(SharedBuffer.getData());

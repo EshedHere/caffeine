@@ -17,6 +17,7 @@ package com.github.benmanes.caffeine.cache.simulator.policy;
 
 import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TwoQueuePolicy;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -38,7 +39,7 @@ public interface Policy {
 
   /** Indicates that the recording has completed. */
   default void finished() {}
-
+//  public Long2ObjectMap<Object> data = new Long2ObjectOpenHashMap<>();
   /** Returns the cache efficiency statistics. */
   PolicyStats stats();
 //  Long2ObjectMap<Object> data();
