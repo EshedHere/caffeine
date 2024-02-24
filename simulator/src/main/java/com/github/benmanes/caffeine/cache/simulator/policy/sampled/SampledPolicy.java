@@ -29,6 +29,7 @@ import java.util.Set;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.BaseNode;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 
+import com.github.benmanes.caffeine.cache.simulator.policy.linked.SegmentedLruPolicy;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
@@ -103,10 +104,14 @@ public class SampledPolicy implements KeyOnlyPolicy {
   @Override
   public void record(long key) {
     Node node = data.get(key);
+
     admittor.record(key);
     long now = ++tick;
     if (node == null) {
+//      System.out.println(key);
       node = new Node(key, data.size(), now);
+      node = new Node(SharedBuffer.getData(),now);
+
       policyStats.recordOperation();
       policyStats.recordMiss();
       table[node.index] = node;
@@ -124,7 +129,6 @@ public class SampledPolicy implements KeyOnlyPolicy {
   private void evict(Node candidate) {
 
     if (data.size() > maximumSize) {
-      SharedBuffer.setFlag(1);
       List<Node> sample = (policy == EvictionPolicy.RANDOM)
           ? Arrays.asList(table)
           : sampleStrategy.sample(table, candidate, sampleSize, random, policyStats);
@@ -136,11 +140,11 @@ public class SampledPolicy implements KeyOnlyPolicy {
         //move VICTIM to buffer
 //        System.out.println("The victim key from sampled: "+victim.key);
 
-//        SharedBuffer.insertData(victim);
 //        System.out.println("The victim key read from sampled: "+SharedBuffer.getBufferKey());
 
 //        System.out.println("The victim key is: "+victim.key);
-
+        SharedBuffer.incCounter();
+        SharedBuffer.insertData(victim);
         removeFromTable(victim);
         data.remove(victim.key);
       } else {
@@ -148,7 +152,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
 //        SharedBuffer.insertData(candidate);
 //        System.out.println("The candidate key is: "+victim.key);
 
-
+        SharedBuffer.incCounter();
+        SharedBuffer.insertData(candidate);
         removeFromTable(candidate);
         data.remove(candidate.key);
       }

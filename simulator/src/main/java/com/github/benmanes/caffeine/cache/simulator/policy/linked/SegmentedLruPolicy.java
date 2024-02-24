@@ -102,6 +102,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 //      data.get(node.key);
 
        node = data.get(key);
+       node = new Node(SharedBuffer.getData());
 
 
     admittor.record(key);
@@ -145,6 +146,8 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
   private void evict(Node candidate) {
     if (data.size() > maximumSize) {
+
+
       Node victim = (maxProtected == 0)
           ? headProtected.next // degrade to LRU
           : headProbation.next;
@@ -153,12 +156,13 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
       boolean admit = admittor.admit(candidate.key, victim.key);
       if (admit) {
         //evict from lookup table
-//        SharedBuffer.insertData(victim);
+        SharedBuffer.insertData(victim);
+        SharedBuffer.incCounter();
         evictEntry(victim);
       } else {
         //evict from lookup table
-//        SharedBuffer.insertData(candidate);
-
+        SharedBuffer.insertData(candidate);
+        SharedBuffer.incCounter();
         evictEntry(candidate);
       }
     }

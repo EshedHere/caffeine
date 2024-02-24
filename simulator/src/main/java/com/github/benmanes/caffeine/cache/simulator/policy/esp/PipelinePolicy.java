@@ -33,7 +33,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
   private final SuperPolicy superPolicy;
   public PolicyStats pipeLineStats;
-
+  private BaseNode baseNode;
   public String pipelineOrder;
   final int maximumSize;
   private final HashMap<Long, Integer> lookUptable;
@@ -73,6 +73,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.pipelineList = settings.pipelineOrder();
     this.pipelineArray = this.pipelineList.split(",");
     this.pipeline_length = this.pipelineArray.length;
+    this.baseNode = new BaseNode();
     System.out.println("pipeline lengtgh is " + this.pipeline_length);
 
     //-----------------BUILD THE PIPELINE-------------------
@@ -83,10 +84,12 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 //      pipelinePolicies.add(superPolicy.gdWheelPolicy);
 
     }
+
   }
 
   @Override
   public void record(long key) {
+    this.baseNode.key=key;
     extCount =0;
     //-------PIPELINE OPERATION-----------
     //1.check if hit
@@ -135,15 +138,17 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       pipelinePolicies.get(0).record(event);
     }
     //----------MAIN PIPELINE LOOP----------
-
+SharedBuffer.insertData(this.baseNode);
 for (int i = 0; i < this.pipeline_length; i++) {
         //Read from the SharedBuffer
+
         extCount = SharedBuffer.getCounter();
         //If the SharedBuffer is increased by 1, activate the next block
         if(extCount==i) {
           //If the current block is the last block, evict from the lookup table
           if(i==this.pipeline_length-1) {
             lookUptable.remove(key);
+            System.out.println("Pipeline victim key is" + SharedBuffer.getBufferKey());
           }
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {
