@@ -97,6 +97,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+    System.out.println("WindowTinyLFU got " +key);
     policyStats.recordOperation();
     Node node = data.get(key);
     if (node == null) {
@@ -175,8 +176,9 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
     if (data.size() > maximumSize) {
       Node victim = headProbation.next;
+
       Node evict = admittor.admit(candidate.key, victim.key) ? victim : candidate;
-      System.out.println("WINDOW TINY LFU IS " + evict.key);
+      System.out.println("WindowTinyLFU chose between "+candidate.key+" and "+victim.key+" and evicted " + evict.key);
       data.remove(evict.key);
       evict.remove();
 

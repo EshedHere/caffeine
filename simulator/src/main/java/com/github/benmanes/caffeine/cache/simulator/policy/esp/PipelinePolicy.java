@@ -97,7 +97,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
     //------------ON HIT----------
     if(lookUptable.get(key) != null) {
-      System.out.println("Pipeline HIT key is " + key);
+//      System.out.println("Pipeline HIT key is " + key);
 
       pipeLineStats.recordOperation();
       pipeLineStats.recordHit();
@@ -137,7 +137,7 @@ for (int i = 0; i <= this.pipeline_length; i++) {
           if(i==this.pipeline_length-1) {
 //            System.out.println(extCount);
             lookUptable.remove(key);
-//            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
+            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
           }
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {
