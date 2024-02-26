@@ -28,6 +28,7 @@ import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import com.google.common.base.MoreObjects;
 import com.typesafe.config.Config;
 
@@ -58,8 +59,8 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
   private final Admittor admittor;
   private final int maximumSize;
 
-  private final Node headWindow;
-  private final Node headProbation;
+  private final Node headWindow; //LRU VICTIM
+  private final Node headProbation; //SLRU VICTIM
   private final Node headProtected;
 
   private final int maxWindow;
@@ -97,7 +98,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-    System.out.println("WindowTinyLFU got " +key);
+//    System.out.println("WindowTinyLFU got " +key);
     policyStats.recordOperation();
     Node node = data.get(key);
     if (node == null) {
@@ -167,7 +168,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
       return;
     }
 
-    Node candidate = headWindow.next;
+    Node candidate = headWindow.next; //LRU
     sizeWindow--;
 
     candidate.remove();
@@ -178,9 +179,8 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
       Node victim = headProbation.next;
 
       Node evict = admittor.admit(candidate.key, victim.key) ? victim : candidate;
-//      Node evict = admittor.admit(candidate.key, victim.key) ? candidate : victim;
 
-      System.out.println("WindowTinyLFU chose between "+candidate.key+" and "+victim.key+" and evicted " + evict.key);
+//      System.out.println("WindowTinyLFU got "+ SharedBuffer.getBufferKey() +" and chose between "+candidate.key+" and "+victim.key+" and evicted " + evict.key);
       data.remove(evict.key);
       evict.remove();
 

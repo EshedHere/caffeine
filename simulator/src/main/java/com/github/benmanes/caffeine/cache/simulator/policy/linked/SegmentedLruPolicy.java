@@ -93,10 +93,10 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   @Override
   public void record(long key) {
     Node node;
+    Node node1;
     policyStats.recordOperation();
 
        node = data.get(key);
-       node = new Node(SharedBuffer.getData());
 
 
     admittor.record(key);
@@ -130,7 +130,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   private void onMiss(long key) {
     //print im here in onMiss
     Node node = data.get(key);
-//    Node node = new Node(key);
+    node = new Node(SharedBuffer.getData());
     data.put(key, node);
     policyStats.recordMiss();
     node.appendToTail(headProbation);
@@ -139,6 +139,8 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   }
 
   private void evict(Node candidate) {
+//    System.out.println("hello from segmented evict");
+
     if (data.size() > maximumSize) {
 
 
@@ -152,11 +154,14 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
         //evict from lookup table
         SharedBuffer.insertData(victim);
         SharedBuffer.incCounter();
+//        System.out.println("counter from segmented after inc is " + SharedBuffer.getCounter());
         evictEntry(victim);
       } else {
         //evict from lookup table
         SharedBuffer.insertData(candidate);
         SharedBuffer.incCounter();
+//        System.out.println("counter from segmented after inc is " + SharedBuffer.getCounter());
+
         evictEntry(candidate);
       }
     }

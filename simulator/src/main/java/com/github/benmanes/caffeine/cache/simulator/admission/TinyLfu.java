@@ -54,7 +54,7 @@ public final class TinyLfu implements KeyOnlyAdmittor {
     } else {
 //      this.threshold = Integer.MAX_VALUE;
       this.threshold = 1;
-      this.probability = 1.0;
+      this.probability = 0;
     }
   }
 

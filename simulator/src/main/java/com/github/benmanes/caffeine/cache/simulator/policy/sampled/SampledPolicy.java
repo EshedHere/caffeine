@@ -145,6 +145,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
 //        System.out.println("The victim key is: "+victim.key);
         SharedBuffer.incCounter();
+//        System.out.println("FROM LRU the counter is: "+SharedBuffer.getCounter());
         SharedBuffer.insertData(victim);
         removeFromTable(victim);
         data.remove(victim.key);
