@@ -92,6 +92,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+    System.out.println("sLRU: "+data);
     Node node;
     Node node1;
     policyStats.recordOperation();
@@ -142,8 +143,6 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 //    System.out.println("hello from segmented evict");
 
     if (data.size() > maximumSize) {
-
-
       Node victim = (maxProtected == 0)
           ? headProtected.next // degrade to LRU
           : headProbation.next;

@@ -103,6 +103,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+    System.out.println("LRU: "+data);
+
     Node node = data.get(key);
 
     admittor.record(key);

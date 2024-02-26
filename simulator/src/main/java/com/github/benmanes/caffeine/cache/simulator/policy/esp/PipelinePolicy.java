@@ -89,7 +89,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-    System.out.println("Pipeline got "+key);
+//    System.out.println("Pipeline got "+key);
 
 //    System.out.println("Pipeline from record key is " + key);
     this.baseNode.key=key;
@@ -140,7 +140,7 @@ for (int i = 0; i <= this.pipeline_length; i++) {
           if(i==this.pipeline_length) {
 //            System.out.println(extCount);
             lookUptable.remove(SharedBuffer.getBufferKey());
-            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
+//            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
             continue;
           }
           //Activate the next block
