@@ -136,7 +136,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
       Node victim = policy.select(sample, random, tick);
       policyStats.recordEviction();
-
+//      System.out.println("LRU before evict (victim): "+data+" and input key is "+SharedBuffer.getBufferKey());
+//      System.out.println("LRU selected between: "+victim.key+" and "+candidate.key);
       if (admittor.admit(candidate.key, victim.key)) {
 
         //move VICTIM to buffer
@@ -150,7 +151,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
         SharedBuffer.insertData(victim);
         removeFromTable(victim);
         data.remove(victim.key);
-        System.out.println("LRU after eviction: "+data);
+//        System.out.println("LRU after eviction: "+data);
 
       } else {
         //move candidate to buffer
@@ -314,17 +315,21 @@ public class SampledPolicy implements KeyOnlyPolicy {
       this.index = index;
       this.key = key;
 
-      super.key=this.key;
+      super.insertionTime = this.insertionTime;
       super.accessTime=this.accessTime;
+      super.key=this.key;
+      super.index=this.index;
     }
      Node(BaseNode basenode, int index, long tick){
        this.insertionTime = tick;
        this.accessTime = tick;
        this.key = basenode.key;
        this.recency=basenode.recency;
-       super.key=this.key;
-       super.accessTime=this.accessTime;
        this.index=index;
+
+       super.insertionTime = this.insertionTime;
+       super.accessTime=this.accessTime;
+       super.key=this.key;
        super.index=this.index;
 
      }

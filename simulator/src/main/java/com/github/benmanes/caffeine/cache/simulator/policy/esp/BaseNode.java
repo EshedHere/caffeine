@@ -5,6 +5,7 @@ public class BaseNode {
    public int index =0;
    public long key;
    public int recency;
-  public long accessTime;
+   public long insertionTime;
+   public long accessTime;
 
 }

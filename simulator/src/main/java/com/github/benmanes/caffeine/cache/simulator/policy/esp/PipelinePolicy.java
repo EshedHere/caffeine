@@ -45,7 +45,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
   PolicyConstructor policyConstructor;
   Config confTest;
   int extCount=0; //used for tracking nodes in the pipeline + pipeline current stage
-
+  private int keyTest=0;
   static class PipelineSettings extends BasicSettings {
   public PipelineSettings(Config config) {
     super(config);
@@ -74,6 +74,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.pipelineArray = this.pipelineList.split(",");
     this.pipeline_length = this.pipelineArray.length;
     this.baseNode = new BaseNode();
+    this.keyTest=0;
     System.out.println("pipeline lengtgh is " + this.pipeline_length);
 
     //-----------------BUILD THE PIPELINE-------------------
@@ -140,8 +141,11 @@ for (int i = 0; i <= this.pipeline_length; i++) {
 //    System.out.println("Pipeline got "+key+" and i is " + i);
           if(i==this.pipeline_length) {
 //            System.out.println(extCount);
+//            System.out.println("Pipeline data before eviction "+this.lookUptable);
+
             lookUptable.remove(SharedBuffer.getBufferKey());
-//            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
+//            System.out.println("Pipeline got "+this.baseNode.key+" and victim key is " + SharedBuffer.getBufferKey());
+//            System.out.println("Pipeline data after eviction "+this.lookUptable);
             continue;
           }
           lookUptable.put(SharedBuffer.getBufferKey(), i);

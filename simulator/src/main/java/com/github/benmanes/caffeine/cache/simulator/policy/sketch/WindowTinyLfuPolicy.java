@@ -68,6 +68,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   private int sizeWindow;
   private int sizeProtected;
+  private long keyTest;
 
   public WindowTinyLfuPolicy(double percentMain, WindowTinyLfuSettings settings) {
     this.policyStats = new PolicyStats(name() + " (%.0f%%)", 100 * (1.0d - percentMain));
@@ -81,6 +82,8 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     this.headProtected = new Node();
     this.headProbation = new Node();
     this.headWindow = new Node();
+
+
   }
 
   /** Returns all variations of this policy based on the configuration parameters. */
@@ -98,6 +101,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
+    this.keyTest = key;
 //    System.out.println("WindowTinyLFU got " +key);
     policyStats.recordOperation();
     Node node = data.get(key);
@@ -176,14 +180,26 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     candidate.appendToTail(headProbation);
 
     if (data.size() > maximumSize) {
+//      System.out.println("WindowTinyLFU evict");
+
+      //Check if probation size exceeds the maximum
+      if(data.size()-(sizeProtected+sizeWindow) > maximumSize-(maxWindow+maxProtected)) {
+//        System.out.println("WTLFU before evict (victim): "+data);
+        Node evict = headProbation.next;
+        data.remove(evict.key);
+        evict.remove();
+        policyStats.recordEviction();
+        System.out.println("WindowTinyLFU got "+ this.keyTest +" and evicted " + evict.key);
+//        System.out.println("WTLFU after evict (victim): "+data);
+        return;
+      }
+
       Node victim = headProbation.next;
-
       Node evict = admittor.admit(candidate.key, victim.key) ? victim : candidate;
-
-//      System.out.println("WindowTinyLFU got "+ SharedBuffer.getBufferKey() +" and chose between "+candidate.key+" and "+victim.key+" and evicted " + evict.key);
+//      System.out.println("WindowTinyLFU got "+ this.keyTest +" and evicted " + evict.key);
       data.remove(evict.key);
       evict.remove();
-
+//      System.out.println("WindowTinyLFU data AFTER EVICTION  is " + data);
       policyStats.recordEviction();
     }
   }

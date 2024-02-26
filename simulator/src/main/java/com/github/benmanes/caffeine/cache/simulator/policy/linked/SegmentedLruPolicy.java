@@ -80,8 +80,8 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
     this.maximumSize = Math.toIntExact(settings.PPmaximumSize());
     this.maxProtected = (int) (maximumSize * settings.percentProtected());
     //print maxProtected and maximumSize
-    System.out.println("maxProtected is " + maxProtected);
-    System.out.println("maximumSize is " + maximumSize);
+//    System.out.println("maxProtected is " + maxProtected);
+//    System.out.println("maximumSize is " + maximumSize);
 
   }
 
@@ -117,6 +117,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
     if (node.type == QueueType.PROTECTED) {
       node.moveToTail(headProtected);
     } else {
+
       sizeProtected++;
       if (sizeProtected > maxProtected) {
         Node demote = headProtected.next;
@@ -150,7 +151,9 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 //    System.out.println("hello from segmented evict");
 
     if (data.size() > maximumSize) {
-      System.out.println("segmented maxsize exeeced");
+
+
+//      System.out.println("segmented maxsize exeeced");
       Node victim = (maxProtected == 0)
           ? headProtected.next // degrade to LRU
           : headProbation.next;
@@ -158,12 +161,13 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
       boolean admit = admittor.admit(candidate.key, victim.key);
       if (admit) {
+
+
         //evict from lookup table
         SharedBuffer.insertData(victim);
         SharedBuffer.incCounter();
 //        System.out.println("counter from segmented after inc is " + SharedBuffer.getCounter());
         evictEntry(victim);
-        System.out.println("sLRU after evict (victim): "+data);
 
       } else {
         //evict from lookup table
