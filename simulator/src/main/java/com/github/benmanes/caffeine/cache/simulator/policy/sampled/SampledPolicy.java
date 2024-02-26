@@ -103,7 +103,6 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-    System.out.println("LRU: "+data);
 
     Node node = data.get(key);
 
@@ -112,7 +111,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
     if (node == null) {
 //      System.out.println(key);
       node = new Node(key, data.size(), now);
-      node = new Node(SharedBuffer.getData(),now,data.size());
+      node = new Node(SharedBuffer.getData(),data.size(),now);
 
       policyStats.recordOperation();
       policyStats.recordMiss();
@@ -151,6 +150,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
         SharedBuffer.insertData(victim);
         removeFromTable(victim);
         data.remove(victim.key);
+        System.out.println("LRU after eviction: "+data);
+
       } else {
         //move candidate to buffer
 //        SharedBuffer.insertData(candidate);
@@ -316,7 +317,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
       super.key=this.key;
       super.accessTime=this.accessTime;
     }
-     Node(BaseNode basenode, long tick,int index){
+     Node(BaseNode basenode, int index, long tick){
        this.insertionTime = tick;
        this.accessTime = tick;
        this.key = basenode.key;

@@ -104,6 +104,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       pipeLineStats.recordOperation();
       pipeLineStats.recordHit();
       int blockIndex = lookUptable.get(key);
+//      System.out.println("Pipeline HIT key is " + key + " and blockIndex is " + blockIndex);
       if (pipelinePolicies.get(blockIndex) instanceof KeyOnlyPolicy) {
         // Handle the event as a key-only event
         ((KeyOnlyPolicy) pipelinePolicies.get(blockIndex)).record(key);
@@ -118,7 +119,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
       //------------ON MISS----------
     } else {
-      lookUptable.put(key, 1);
+      lookUptable.put(key, 0);
       pipeLineStats.recordAdmission();
       pipeLineStats.recordOperation();
       //print miss key
@@ -134,7 +135,7 @@ for (int i = 0; i <= this.pipeline_length; i++) {
 
 
   if(extCount==i) {
-    lookUptable.put(key, i);
+
     //print i
 //    System.out.println("Pipeline got "+key+" and i is " + i);
           if(i==this.pipeline_length) {
@@ -143,6 +144,7 @@ for (int i = 0; i <= this.pipeline_length; i++) {
 //            System.out.println("Pipeline victim key is " + SharedBuffer.getBufferKey());
             continue;
           }
+          lookUptable.put(SharedBuffer.getBufferKey(), i);
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {
             // Handle the event as a key-only event
