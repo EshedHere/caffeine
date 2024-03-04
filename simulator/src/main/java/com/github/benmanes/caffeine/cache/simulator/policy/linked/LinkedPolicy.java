@@ -110,6 +110,7 @@ public final class LinkedPolicy implements Policy {
 
   /** Evicts while the map exceeds the maximum capacity. */
   private void evict(Node candidate) {
+    System.out.println("curr size "+currentSize +"and max size "+maximumSize);
     if (currentSize > maximumSize) {
       while (currentSize > maximumSize) {
         if (candidate.weight > maximumSize) {
@@ -196,6 +197,7 @@ public final class LinkedPolicy implements Policy {
       }
       @Override Node findVictim(Node sentinel, PolicyStats policyStats) {
         policyStats.recordOperation();
+        System.out.println("The sent next "+sentinel.next+ " and sent is " +sentinel);
         return sentinel.next;
       }
     };

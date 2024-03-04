@@ -122,9 +122,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   /** Evicts if the map exceeds the maximum capacity. */
   private void evict(Node candidate) {
-
+    System.out.println(data.size());
     if (data.size() > maximumSize) {
-      SharedBuffer.setFlag(1);
       List<Node> sample = (policy == EvictionPolicy.RANDOM)
           ? Arrays.asList(table)
           : sampleStrategy.sample(table, candidate, sampleSize, random, policyStats);
@@ -139,10 +138,11 @@ public class SampledPolicy implements KeyOnlyPolicy {
 //        SharedBuffer.insertData(victim);
 //        System.out.println("The victim key read from sampled: "+SharedBuffer.getBufferKey());
 
-//        System.out.println("The victim key is: "+victim.key);
 
         removeFromTable(victim);
         data.remove(victim.key);
+
+        System.out.println("LRU: "+data);
       } else {
         //move candidate to buffer
 //        SharedBuffer.insertData(candidate);
@@ -233,6 +233,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
     /** Evicts entries based on how recently they are used, with the least recent evicted first. */
     LRU {
       @Override Node select(List<Node> sample, Random random, long tick) {
+        System.out.println("evict candidate: "+sample.stream().min(Comparator.comparingLong(node -> node.accessTime)).orElseThrow());
         return sample.stream().min(Comparator.comparingLong(node -> node.accessTime)).orElseThrow();
       }
     },
