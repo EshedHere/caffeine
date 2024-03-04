@@ -54,7 +54,8 @@ public final class TinyLfu implements KeyOnlyAdmittor {
     } else {
       this.threshold = Integer.MAX_VALUE;
 //      this.threshold = 1;
-      this.probability = 0;
+      this.probability = 1;
+//      this.probability = 0;
     }
   }
 
@@ -96,16 +97,17 @@ public final class TinyLfu implements KeyOnlyAdmittor {
 
   @Override
   public boolean admit(long candidateKey, long victimKey) {
-    sketch.reportMiss();
-
-    int victimFreq = sketch.frequency(victimKey);
-    int candidateFreq = sketch.frequency(candidateKey);
-    if ((candidateFreq > victimFreq)
-        || ((candidateFreq >= threshold) && (random.nextFloat() < probability))) {
-      policyStats.recordAdmission();
-      return true;
-    }
-    policyStats.recordRejection();
-    return false;
+//    sketch.reportMiss();
+//
+//    int victimFreq = sketch.frequency(victimKey);
+//    int candidateFreq = sketch.frequency(candidateKey);
+//    if ((candidateFreq >= victimFreq)
+//        || ((candidateFreq >= threshold) && (random.nextFloat() < probability))) {
+//      policyStats.recordAdmission();
+//      return true;
+//    }
+//    policyStats.recordRejection();
+//    return false;
+    return true;
   }
 }

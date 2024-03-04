@@ -22,6 +22,7 @@ import java.util.Set;
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admission;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
+import com.github.benmanes.caffeine.cache.simulator.admission.TinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
@@ -72,6 +73,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   public SegmentedLruPolicy(Admission admission, Config config) {
     this.policyStats = new PolicyStats(admission.format(name()));
     this.admittor = admission.from(config, policyStats);
+
 
     SegmentedLruSettings settings = new SegmentedLruSettings(config);
     this.headProtected = new Node();
@@ -148,12 +150,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   }
 
   private void evict(Node candidate) {
-//    System.out.println("hello from segmented evict");
-
     if (data.size() > maximumSize) {
-
-
-//      System.out.println("segmented maxsize exeeced");
       Node victim = (maxProtected == 0)
           ? headProtected.next // degrade to LRU
           : headProbation.next;

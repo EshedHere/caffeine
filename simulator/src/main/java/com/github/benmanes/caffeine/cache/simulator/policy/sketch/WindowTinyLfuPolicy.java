@@ -28,7 +28,6 @@ import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
-import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import com.google.common.base.MoreObjects;
 import com.typesafe.config.Config;
 
@@ -59,8 +58,8 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
   private final Admittor admittor;
   private final int maximumSize;
 
-  private final Node headWindow; //LRU VICTIM
-  private final Node headProbation; //SLRU VICTIM
+  private final Node headWindow;
+  private final Node headProbation;
   private final Node headProtected;
 
   private final int maxWindow;
@@ -68,7 +67,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   private int sizeWindow;
   private int sizeProtected;
-  private long keyTest;
+  long tempKey;
 
   public WindowTinyLfuPolicy(double percentMain, WindowTinyLfuSettings settings) {
     this.policyStats = new PolicyStats(name() + " (%.0f%%)", 100 * (1.0d - percentMain));
@@ -82,16 +81,14 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     this.headProtected = new Node();
     this.headProbation = new Node();
     this.headWindow = new Node();
-
-
   }
 
   /** Returns all variations of this policy based on the configuration parameters. */
   public static Set<Policy> policies(Config config) {
     WindowTinyLfuSettings settings = new WindowTinyLfuSettings(config);
     return settings.percentMain().stream()
-        .map(percentMain -> new WindowTinyLfuPolicy(percentMain, settings))
-        .collect(toUnmodifiableSet());
+      .map(percentMain -> new WindowTinyLfuPolicy(percentMain, settings))
+      .collect(toUnmodifiableSet());
   }
 
   @Override
@@ -101,8 +98,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-    this.keyTest = key;
-//    System.out.println("WindowTinyLFU got " +key);
+    this.tempKey= key;
     policyStats.recordOperation();
     Node node = data.get(key);
     if (node == null) {
@@ -172,7 +168,7 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
       return;
     }
 
-    Node candidate = headWindow.next; //LRU
+    Node candidate = headWindow.next;
     sizeWindow--;
 
     candidate.remove();
@@ -180,26 +176,15 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     candidate.appendToTail(headProbation);
 
     if (data.size() > maximumSize) {
-//      System.out.println("WindowTinyLFU evict");
-
-      //Check if probation size exceeds the maximum
-      if(data.size()-(sizeProtected+sizeWindow) > maximumSize-(maxWindow+maxProtected)) {
-//        System.out.println("WTLFU before evict (victim): "+data);
-        Node evict = headProbation.next;
-        data.remove(evict.key);
-        evict.remove();
-        policyStats.recordEviction();
-        System.out.println("WindowTinyLFU got "+ this.keyTest +" and evicted " + evict.key);
-//        System.out.println("WTLFU after evict (victim): "+data);
-        return;
-      }
-
       Node victim = headProbation.next;
       Node evict = admittor.admit(candidate.key, victim.key) ? victim : candidate;
-//      System.out.println("WindowTinyLFU got "+ this.keyTest +" and evicted " + evict.key);
+//      System.out.println("WindowsTinyLFU got "+this.tempKey);
+//      System.out.println("WindowTinyLfu chose between : " + candidate.key + " and "+ victim.key+ " and chose to evict : " + evict.key);
+
       data.remove(evict.key);
+//      System.out.println("WindowTinyLfu after eviction: " + data);
       evict.remove();
-//      System.out.println("WindowTinyLFU data AFTER EVICTION  is " + data);
+
       policyStats.recordEviction();
     }
   }
@@ -266,9 +251,9 @@ public final class WindowTinyLfuPolicy implements KeyOnlyPolicy {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-          .add("key", key)
-          .add("status", status)
-          .toString();
+        .add("key", key)
+        .add("status", status)
+        .toString();
     }
   }
 
