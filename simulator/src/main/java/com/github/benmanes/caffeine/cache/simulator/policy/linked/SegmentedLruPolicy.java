@@ -22,7 +22,7 @@ import java.util.Set;
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admission;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
-import com.github.benmanes.caffeine.cache.simulator.admission.TinyLfu;
+import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
@@ -72,10 +72,13 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
   public SegmentedLruPolicy(Admission admission, Config config) {
     this.policyStats = new PolicyStats(admission.format(name()));
-    this.admittor = admission.from(config, policyStats);
+//    this.admittor = admission.from(config, policyStats);
+
+
 
 
     SegmentedLruSettings settings = new SegmentedLruSettings(config);
+    this.admittor = PipelineTinyLfu.getInstance(config, policyStats);
     this.headProtected = new Node();
     this.headProbation = new Node();
     this.data = new Long2ObjectOpenHashMap<>();

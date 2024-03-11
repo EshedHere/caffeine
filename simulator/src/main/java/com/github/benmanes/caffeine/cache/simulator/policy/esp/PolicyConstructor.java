@@ -1,5 +1,7 @@
 package com.github.benmanes.caffeine.cache.simulator.policy.esp;
 
+import static com.github.benmanes.caffeine.cache.simulator.policy.Policy.Characteristic;
+import java.util.Set;
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admission;
@@ -8,6 +10,8 @@ import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
 import com.github.benmanes.caffeine.cache.simulator.policy.linked.SegmentedLruPolicy;
+import com.github.benmanes.caffeine.cache.simulator.policy.linked.LinkedPolicy;
+
 import com.github.benmanes.caffeine.cache.simulator.policy.sampled.SampledPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TuQueuePolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TwoQueuePolicy;
@@ -18,6 +22,7 @@ import org.checkerframework.checker.units.qual.Length;
 
 import java.util.*;
 
+import static com.github.benmanes.caffeine.cache.simulator.policy.Policy.Characteristic.WEIGHTED;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Locale.US;
 
@@ -29,15 +34,22 @@ public class PolicyConstructor{
   PolicyStats IntraStats;
   static SampledSettings tempSampledSettings;
   SegmentedLruSettings tempSegmentedLRUSettings;
+  BasicSettings tempLinkedLRUSettings;
   public Object createPolicyObject;
+   boolean weighted;
+  Set<Characteristic> characteristics;
 
-public PolicyConstructor(Config config) {
+
+  public PolicyConstructor(Config config) {
   this.inConfig = config;
   this.IntraStats = new PolicyStats("Intra-Pipeline (IGNORE)");
-}
+  this.weighted = false;
+  this.characteristics = Set.of(WEIGHTED);
+
+  }
   public Policy createPolicy(String policyName){
     switch (policyName) {
-      case "LRU":
+      case "SampledLRU":
         tempSampledSettings = new SampledSettings(this.inConfig);
         return new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LRU, tempSampledSettings.config());
       case "LFU":
@@ -46,6 +58,10 @@ public PolicyConstructor(Config config) {
       case "SegmentedLRU":
         tempSegmentedLRUSettings = new SegmentedLruSettings(this.inConfig);
         return new SegmentedLruPolicy(Admission.ALWAYS, tempSegmentedLRUSettings.config());
+      case "LinkedLRU":
+        tempLinkedLRUSettings = new BasicSettings(this.inConfig);
+        return new LinkedPolicy(tempLinkedLRUSettings.config(),this.characteristics,Admission.ALWAYS,LinkedPolicy.EvictionPolicy.LRU);
+
       default:
         return null;
     }

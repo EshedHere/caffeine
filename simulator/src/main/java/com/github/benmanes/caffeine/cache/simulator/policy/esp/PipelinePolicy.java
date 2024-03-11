@@ -2,6 +2,8 @@ package com.github.benmanes.caffeine.cache.simulator.policy.esp;
 
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
+import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
+import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.AccessEvent;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
@@ -44,6 +46,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
   List<Policy> pipelinePolicies =new ArrayList<>();
   PolicyConstructor policyConstructor;
   Config confTest;
+  private final PipelineTinyLfu admittor;
   int extCount=0; //used for tracking nodes in the pipeline + pipeline current stage
   private int keyTest=0;
   static class PipelineSettings extends BasicSettings {
@@ -75,6 +78,8 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.pipeline_length = this.pipelineArray.length;
     this.baseNode = new BaseNode();
     this.keyTest=0;
+    this.admittor = PipelineTinyLfu.getInstance(config, pipeLineStats);
+
     System.out.println("pipeline lengtgh is " + this.pipeline_length);
 
     //-----------------BUILD THE PIPELINE-------------------
@@ -90,9 +95,8 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-//    System.out.println("Pipeline got "+key);
 
-//    System.out.println("Pipeline from record key is " + key);
+    this.admittor.sketch.increment(key); //increase freq value in sketch
     this.baseNode.key=key;
     SharedBuffer.insertData(this.baseNode);
     SharedBuffer.resetCounter();

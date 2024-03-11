@@ -35,15 +35,23 @@ import com.typesafe.config.Config;
  *
  * @author ben.manes@gmail.com (Ben Manes)
  */
-public final class TinyLfu implements KeyOnlyAdmittor {
+
+/**
+ * This admittor is an alternative fro TinyLFU, the cahnges apllied here makes this
+ * sketch a global frequency tracker, the frequncies are updated by the pipeline manager
+ *
+ *
+ */
+public final class PipelineTinyLfu implements KeyOnlyAdmittor {
+  private static volatile PipelineTinyLfu instance = null;
   private final PolicyStats policyStats;
-  private final Frequency sketch;
+  public  Frequency sketch;
   private final Random random;
 
   private final double probability;
   private final int threshold;
 
-  public TinyLfu(Config config, PolicyStats policyStats) {
+  public PipelineTinyLfu(Config config, PolicyStats policyStats) {
     var settings = new BasicSettings(config);
     this.random = new Random(settings.randomSeed());
     this.sketch = makeSketch(settings);
@@ -59,7 +67,7 @@ public final class TinyLfu implements KeyOnlyAdmittor {
     }
   }
 
-  private Frequency makeSketch(BasicSettings settings) {
+  public Frequency makeSketch(BasicSettings settings) {
     String type = settings.tinyLfu().sketch();
     if (type.equalsIgnoreCase("count-min-4")) {
       String reset = settings.tinyLfu().countMin4().reset();
@@ -92,7 +100,8 @@ public final class TinyLfu implements KeyOnlyAdmittor {
 
   @Override
   public void record(long key) {
-    sketch.increment(key);
+//    sketch.increment(key);
+    //pipeline manager will directly increase the value of the key (freq)
   }
 
   @Override
@@ -103,12 +112,22 @@ public final class TinyLfu implements KeyOnlyAdmittor {
     int candidateFreq = sketch.frequency(candidateKey);
 //    System.out.println("candidate is"+candidateKey+" freq is: "+candidateFreq+", VICTIM: "+victimKey+" freq is "+victimFreq);
     if ((candidateFreq >= victimFreq)
-        || ((candidateFreq >= threshold) && (random.nextFloat() < probability))) {
+      || ((candidateFreq >= threshold) && (random.nextFloat() < probability))) {
       policyStats.recordAdmission();
       return true;
     }
     policyStats.recordRejection();
     return false;
 //    return true;// ALWAYS ADMIT
+  }
+  public static PipelineTinyLfu getInstance(Config config, PolicyStats policyStats) {
+    if (instance == null) { //First check
+      synchronized (PipelineTinyLfu.class) {
+        if(instance == null) { //Second check
+          instance = new PipelineTinyLfu(config, policyStats);
+        }
+      }
+    }
+    return instance;
   }
 }
