@@ -101,14 +101,12 @@ public final class TinyLfu implements KeyOnlyAdmittor {
 
     int victimFreq = sketch.frequency(victimKey);
     int candidateFreq = sketch.frequency(candidateKey);
-//    System.out.println("candidate is"+candidateKey+" freq is: "+candidateFreq+", VICTIM: "+victimKey+" freq is "+victimFreq);
-    if ((candidateFreq >= victimFreq)
+    if ((candidateFreq > victimFreq)
         || ((candidateFreq >= threshold) && (random.nextFloat() < probability))) {
       policyStats.recordAdmission();
       return true;
     }
     policyStats.recordRejection();
     return false;
-//    return true;// ALWAYS ADMIT
   }
 }

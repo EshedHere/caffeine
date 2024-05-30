@@ -5,12 +5,14 @@ import java.util.Set;
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admission;
+import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
 import com.github.benmanes.caffeine.cache.simulator.policy.linked.SegmentedLruPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.linked.LinkedPolicy;
+import com.github.benmanes.caffeine.cache.simulator.policy.greedy_dual.GDWheelPolicy;
 
 import com.github.benmanes.caffeine.cache.simulator.policy.sampled.SampledPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TuQueuePolicy;
@@ -35,6 +37,7 @@ public class PolicyConstructor{
   static SampledSettings tempSampledSettings;
   SegmentedLruSettings tempSegmentedLRUSettings;
   BasicSettings tempLinkedLRUSettings;
+  GDWheelSettings tempGDWheelSettings;
   public Object createPolicyObject;
    boolean weighted;
   Set<Characteristic> characteristics;
@@ -57,11 +60,15 @@ public class PolicyConstructor{
         return new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LFU, tempSampledSettings.config());
       case "SegmentedLRU":
         tempSegmentedLRUSettings = new SegmentedLruSettings(this.inConfig);
-        return new SegmentedLruPolicy(Admission.ALWAYS, tempSegmentedLRUSettings.config());
+        SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, tempSegmentedLRUSettings.config());
+        segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
+        return segmentedLruPolicy;
       case "LinkedLRU":
         tempLinkedLRUSettings = new BasicSettings(this.inConfig);
         return new LinkedPolicy(tempLinkedLRUSettings.config(),this.characteristics,Admission.ALWAYS,LinkedPolicy.EvictionPolicy.LRU);
-
+      case "GDWheel":
+        tempGDWheelSettings = new GDWheelSettings(this.inConfig);
+        return new GDWheelPolicy(tempGDWheelSettings.config());
       default:
         return null;
     }
@@ -129,5 +136,16 @@ public class PolicyConstructor{
 
   }
 
+  private static final class GDWheelSettings extends BasicSettings {
+    public GDWheelSettings(Config config) {
+      super(config);
+    }
+    public int numberOfWheels() {
+      return config().getInt("esp.gd-wheel.wheels");
+    }
+    public int numberOfQueues() {
+      return config().getInt("esp.gd-wheel.queues");
+    }
+  }
 }
 

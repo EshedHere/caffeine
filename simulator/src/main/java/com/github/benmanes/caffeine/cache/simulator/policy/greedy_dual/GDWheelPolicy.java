@@ -23,6 +23,8 @@ import com.github.benmanes.caffeine.cache.simulator.policy.AccessEvent;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.BaseNode;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import com.google.common.base.MoreObjects;
 import com.typesafe.config.Config;
 
@@ -67,6 +69,7 @@ public final class GDWheelPolicy implements Policy {
       }
       cost[i] = Math.pow(settings.numberOfQueues(), i);
     }
+    System.out.println(this.maximumSize);
   }
 
   @Override
@@ -75,6 +78,7 @@ public final class GDWheelPolicy implements Policy {
     policyStats.recordOperation();
     if (node == null) {
       policyStats.recordWeightedMiss(event.weight());
+//      System.out.println(event.weight());
       node = new Node(event.key());
       onMiss(event, node);
     } else {
@@ -102,6 +106,11 @@ public final class GDWheelPolicy implements Policy {
         var victim = wheel[0][hand].prev;
         policyStats.recordEviction();
         remove(victim);
+        SharedBuffer.incCounter();
+        SharedBuffer.insertData(victim);
+        System.out.println("GDW got "+event.key+" evicted " + victim.key);
+
+
       } else {
         // if C[1] has advanced a whole round back to 1, call migration(2)
         migrate(1);
@@ -244,7 +253,7 @@ public final class GDWheelPolicy implements Policy {
     }
   }
 
-  private static class Node {
+  private static class Node extends BaseNode {
     final long key;
 
     double cost;
@@ -255,6 +264,8 @@ public final class GDWheelPolicy implements Policy {
 
     public Node(long key) {
       this.key = key;
+      super.key=this.key;
+
     }
 
     /** Removes the node from the list. */

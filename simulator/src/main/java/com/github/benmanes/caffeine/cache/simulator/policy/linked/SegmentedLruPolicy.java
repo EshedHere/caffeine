@@ -62,7 +62,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   public PolicyStats policyStats;
   final Node headProtected;
   final Node headProbation;
-  final Admittor admittor;
+  public Admittor admittor;
   public int maxProtected;
   public int maximumSize;
 
@@ -78,7 +78,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
 
     SegmentedLruSettings settings = new SegmentedLruSettings(config);
-    this.admittor = PipelineTinyLfu.getInstance(config, policyStats);
+    this.admittor = admission.from(config, policyStats);
     this.headProtected = new Node();
     this.headProbation = new Node();
     this.data = new Long2ObjectOpenHashMap<>();

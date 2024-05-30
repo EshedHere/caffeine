@@ -7,5 +7,6 @@ public class BaseNode {
    public int recency;
    public long insertionTime;
    public long accessTime;
+   public int weight;
 
 }
