@@ -38,7 +38,8 @@ import com.typesafe.config.Config;
 
 /**
  * This admittor is an alternative fro TinyLFU, the cahnges apllied here makes this
- * sketch a global frequency tracker, the frequncies are updated by the pipeline manager
+ *
+ *  sketch a global frequency tracker, the frequncies are updated by the pipeline manager
  *
  *
  */

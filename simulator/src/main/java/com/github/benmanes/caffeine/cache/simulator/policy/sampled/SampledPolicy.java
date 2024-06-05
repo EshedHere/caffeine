@@ -88,7 +88,9 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   }
 
-  /** Returns all variations of this policy based on the configuration parameters. */
+  /**
+   * Returns all variations of this policy based on the configuration parameters.
+   */
   public static Set<Policy> policies(Config config, EvictionPolicy policy) {
     BasicSettings settings = new BasicSettings(config);
     return settings.admission().stream().map(admission ->
@@ -110,15 +112,21 @@ public class SampledPolicy implements KeyOnlyPolicy {
     long now = ++tick;
     if (node == null) {
 //      System.out.println(key);
-      node = new Node(key, data.size(), now);
-      node = new Node(SharedBuffer.getData(),data.size(),now);
-
+//      node = new Node(key, data.size(), now);
+      node = new Node(SharedBuffer.getData(), data.size(), now);
+      key = node.key; //custom
+      if(node.key==0) {
+        System.out.println("The victim key is: " + node.key + "   "+key);
+      }
       policyStats.recordOperation();
       policyStats.recordMiss();
       table[node.index] = node;
+
       data.put(key, node);
+
       evict(node);
     } else {
+
       policyStats.recordOperation();
       policyStats.recordHit();
       node.accessTime = now;
@@ -126,13 +134,21 @@ public class SampledPolicy implements KeyOnlyPolicy {
     }
   }
 
-  /** Evicts if the map exceeds the maximum capacity. */
+  /**
+   * Evicts if the map exceeds the maximum capacity.
+   */
   private void evict(Node candidate) {
-
+//    if(candidate.key==0){
+//      System.out.println("The victim key is: "+candidate.key);
+//      System.out.println("The node  is: "+candidate);
+//      System.out.println("The node key is: "+data.get(candidate.key));
+//
+//    }
     if (data.size() > maximumSize) {
+//      System.out.println("LRU before eviction (size exceeded)"+data.size());
       List<Node> sample = (policy == EvictionPolicy.RANDOM)
-          ? Arrays.asList(table)
-          : sampleStrategy.sample(table, candidate, sampleSize, random, policyStats);
+        ? Arrays.asList(table)
+        : sampleStrategy.sample(table, candidate, sampleSize, random, policyStats);
 
       Node victim = policy.select(sample, random, tick);
       policyStats.recordEviction();
@@ -149,29 +165,42 @@ public class SampledPolicy implements KeyOnlyPolicy {
         SharedBuffer.incCounter();
 //        System.out.println("FROM LRU the counter is: "+SharedBuffer.getCounter());
         SharedBuffer.insertData(victim);
+//        if(victim.key==0){
+//          System.out.println("The victim key is: "+victim.key);
+//        }
+//        System.out.println("victim key: " +victim.key);
+
+//        System.out.println("size before eveiction: " + data.size()+"   "+data.get(victim.key));
+
         removeFromTable(victim);
         data.remove(victim.key);
-//        System.out.println("LRU after eviction: "+data);
+//        System.out.println("size after eveiction: " + data.size()+"  "+data.get(victim.key));
 
-      } else {
-        //move candidate to buffer
+
+
+    } else {
+      //move candidate to buffer
 //        SharedBuffer.insertData(candidate);
 //        System.out.println("The candidate key is: "+victim.key);
 
-        SharedBuffer.incCounter();
-        SharedBuffer.insertData(candidate);
-        removeFromTable(candidate);
-        data.remove(candidate.key);
-      }
-    }
+      SharedBuffer.incCounter();
+      SharedBuffer.insertData(candidate);
+      removeFromTable(candidate);
+      data.remove(candidate.key);
 
+    }
   }
+}
+
+
 
   /** Removes the node from the table and adds the index to the free list. */
   private void removeFromTable(Node node) {
     int last = data.size() - 1;
     table[node.index] = table[last];
     table[node.index].index = node.index;
+//    System.out.println("LRU after eviction (size exceeded)"+data.size()+" "+node.index);
+
     table[last] = null;
   }
 
@@ -315,22 +344,17 @@ public class SampledPolicy implements KeyOnlyPolicy {
       this.index = index;
       this.key = key;
 
-      super.insertionTime = this.insertionTime;
-      super.accessTime=this.accessTime;
-      super.key=this.key;
-      super.index=this.index;
+
     }
      Node(BaseNode basenode, int index, long tick){
        this.insertionTime = tick;
        this.accessTime = tick;
        this.key = basenode.key;
-       this.recency=basenode.recency;
+//       this.recency=basenode.recency;
        this.index=index;
 
-       super.insertionTime = this.insertionTime;
-       super.accessTime=this.accessTime;
+
        super.key=this.key;
-       super.index=this.index;
 
      }
 

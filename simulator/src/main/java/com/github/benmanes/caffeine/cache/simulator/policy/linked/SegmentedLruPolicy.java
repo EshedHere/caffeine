@@ -227,7 +227,6 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
       this.key = basenode.key;
       this.prev=UNLINKED;
       this.next=UNLINKED;
-      this.recency=basenode.recency;
       super.key=this.key;
     }
 

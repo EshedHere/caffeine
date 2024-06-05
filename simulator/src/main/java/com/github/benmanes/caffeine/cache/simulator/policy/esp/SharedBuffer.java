@@ -23,7 +23,7 @@ public class SharedBuffer {
   }
 
   // Method to get data from the shared buffer
-  public static synchronized BaseNode getData() {
+  public static  BaseNode getData() {
     return buffer;
   }
   public static synchronized long getBufferKey() {
