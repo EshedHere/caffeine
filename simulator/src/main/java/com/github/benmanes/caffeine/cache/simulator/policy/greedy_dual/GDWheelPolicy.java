@@ -108,7 +108,7 @@ public final class GDWheelPolicy implements Policy {
         remove(victim);
         SharedBuffer.incCounter();
         SharedBuffer.insertData(victim);
-        System.out.println("GDW got "+event.key+" evicted " + victim.key);
+//        System.out.println("GDW got "+event.key+" evicted " + victim.key);
 
 
       } else {
@@ -265,6 +265,11 @@ public final class GDWheelPolicy implements Policy {
     public Node(long key) {
       this.key = key;
       super.key=this.key;
+
+    }
+    public Node(BaseNode basenode){
+      this.key = basenode.key;
+//      super.key=this.key;
 
     }
 
