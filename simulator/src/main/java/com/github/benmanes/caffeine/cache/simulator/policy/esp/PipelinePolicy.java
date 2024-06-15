@@ -67,7 +67,10 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     // Redirect to relevant field in the config file
     return config().getString("esp.pipeline.order");
   }
-}
+  //After Reading The Pipeline Length
+    List<Policy> pipelinePolicies =new ArrayList<>();
+
+  }
   public PipelinePolicy(Config config) {
     this.policyConstructor = new PolicyConstructor(config);
 //------------------INIT--------------------
