@@ -61,7 +61,7 @@ public class PolicyConstructor{
       case "SegmentedLRU":
         tempSegmentedLRUSettings = new SegmentedLruSettings(this.inConfig);
         SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, tempSegmentedLRUSettings.config());
-        segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
+//        segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
         return segmentedLruPolicy;
       case "LinkedLRU":
         tempLinkedLRUSettings = new BasicSettings(this.inConfig);

@@ -4,6 +4,8 @@ package com.github.benmanes.caffeine.cache.simulator.policy.esp;
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
 import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
+import com.github.benmanes.caffeine.cache.simulator.admission.PipelineAdmittor;
+
 import com.github.benmanes.caffeine.cache.simulator.policy.AccessEvent;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
@@ -16,6 +18,9 @@ import com.tangosol.util.Base;
 import com.typesafe.config.Config;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.SuperPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.ControlBuffer;
+
+import com.github.benmanes.caffeine.cache.simulator.admission.perfect.PerfectFrequency;
 import org.checkerframework.checker.units.qual.Length;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import java.util.*;
@@ -49,6 +54,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
   private final PipelineTinyLfu admittor;
   int extCount=0; //used for tracking nodes in the pipeline + pipeline current stage
   private int keyTest=0;
+  List<PerfectFrequency> perfectFrequencyList  = new  ArrayList<>();
   static class PipelineSettings extends BasicSettings {
   public PipelineSettings(Config config) {
     super(config);

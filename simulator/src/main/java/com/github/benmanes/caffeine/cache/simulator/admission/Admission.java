@@ -31,7 +31,6 @@ import com.typesafe.config.Config;
 public enum Admission {
   ALWAYS((config, policyStats) -> Admittor.always(), UnaryOperator.identity()),
   TINYLFU(TinyLfu::new, name -> name + "_TinyLfu");
-
   private final BiFunction<Config, PolicyStats, Admittor> factory;
   private final Function<String, String> formatter;
 
