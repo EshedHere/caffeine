@@ -79,7 +79,9 @@ public final class GDWheelPolicy implements Policy {
     if (node == null) {
       policyStats.recordWeightedMiss(event.weight());
 //      System.out.println(event.weight());
-      node = new Node(event.key());
+//      node = new Node(event.key());
+
+      node = new Node(SharedBuffer.getBufferKey());
       onMiss(event, node);
     } else {
       policyStats.recordWeightedHit(event.weight());
