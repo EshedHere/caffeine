@@ -124,9 +124,10 @@ public final class PipelineTinyLfu implements KeyOnlyAdmittor {
   public static PipelineTinyLfu getInstance(Config config, PolicyStats policyStats) {
     if (instance == null) { //First check
       synchronized (PipelineTinyLfu.class) {
-        if(instance == null) { //Second check
-          instance = new PipelineTinyLfu(config, policyStats);
-        }
+                  instance = new PipelineTinyLfu(config, policyStats);
+
+//        if(instance == null) { //Second check
+//        }
       }
     }
     return instance;

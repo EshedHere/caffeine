@@ -156,6 +156,11 @@ for (int i = 0; i <= this.pipeline_length; i++) {
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {
             // Handle the event as a key-only event
+
+//            if(SharedBuffer.getBufferKey()==0) {
+//              System.out.println("The buffer key key is: " + SharedBuffer.getBufferKey() + "   "+this.baseNode.key+"   block is  "+i);
+//
+//            }
             ((KeyOnlyPolicy) pipelinePolicies.get(i)).record(this.baseNode.key);
           } else {
             // Handle the event for a generic policy

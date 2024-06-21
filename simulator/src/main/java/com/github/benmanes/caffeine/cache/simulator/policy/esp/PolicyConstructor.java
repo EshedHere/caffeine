@@ -5,6 +5,7 @@ import java.util.Set;
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admission;
+import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
 import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
@@ -54,8 +55,11 @@ public class PolicyConstructor{
     switch (policyName) {
       case "SampledLRU":
         tempSampledSettings = new SampledSettings(this.inConfig);
-        return new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LRU, tempSampledSettings.config());
-      case "LFU":
+        SampledPolicy sampledLruPolicy = new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LRU, tempSampledSettings.config());
+//        sampledLruPolicy.admittor = Admittor.always();
+        return sampledLruPolicy;
+
+        case "LFU":
         tempSampledSettings = new SampledSettings(this.inConfig);
         return new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LFU, tempSampledSettings.config());
       case "SegmentedLRU":

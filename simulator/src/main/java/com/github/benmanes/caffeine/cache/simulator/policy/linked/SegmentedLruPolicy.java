@@ -164,15 +164,16 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
 
         //evict from lookup table
-        SharedBuffer.insertData(victim);
         SharedBuffer.incCounter();
-//        System.out.println("counter from segmented after inc is " + SharedBuffer.getCounter());
+
+        SharedBuffer.insertData(victim);
         evictEntry(victim);
 
       } else {
         //evict from lookup table
-        SharedBuffer.insertData(candidate);
         SharedBuffer.incCounter();
+
+        SharedBuffer.insertData(candidate);
 //        System.out.println("counter from segmented after inc is " + SharedBuffer.getCounter());
 
         evictEntry(candidate);
@@ -230,12 +231,12 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
       super.key=this.key;
     }
 
-//    public Node(SharedBuffer sharedBuffer) {
-//      this.key = SharedBuffer.getData().key;
-//      this.prev = UNLINKED;
-//      this.next = UNLINKED;
-//      //this.recency = SharedBuffer.getData().recency;
-//    }
+    public Node(SharedBuffer sharedBuffer) {
+      this.key = SharedBuffer.getData().key;
+      this.prev = UNLINKED;
+      this.next = UNLINKED;
+      //this.recency = SharedBuffer.getData().recency;
+    }
     /** Appends the node to the tail of the list. */
     public void appendToTail(Node head) {
       Node tail = head.prev;
