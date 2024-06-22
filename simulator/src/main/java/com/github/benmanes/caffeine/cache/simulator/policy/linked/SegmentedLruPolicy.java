@@ -100,13 +100,9 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-//    System.out.println("sLRU: "+data);
     Node node;
-
     policyStats.recordOperation();
-
-       node = data.get(key);
-//       System.out.println("sLRU get_key in record : "+node.key);
+    node = data.get(key);
 
 
     admittor.record(key);
@@ -141,11 +137,8 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
   private void onMiss(long key) {
     Node node = data.get(key);
     node = new Node(SharedBuffer.getData());
-//    System.out.println("sLRU node on miss: "+node+" and key is "+key);
     data.put(SharedBuffer.getBufferKey(), node);
-//    System.out.println("sLRU after onMiss : "+data);
 
-//    System.out.println("sLRU before append: "+data);
     policyStats.recordMiss();
     node.appendToTail(headProbation);
     node.type = QueueType.PROBATION;

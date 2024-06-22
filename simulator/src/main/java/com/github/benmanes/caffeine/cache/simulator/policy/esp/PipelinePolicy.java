@@ -110,10 +110,10 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       int blockIndex = lookUptable.get(this.baseNode.key);
       if (pipelinePolicies.get(blockIndex) instanceof KeyOnlyPolicy) {
         // Handle the event as a key-only event
-        ((KeyOnlyPolicy) pipelinePolicies.get(blockIndex)).record(this.baseNode.key);
+        ((KeyOnlyPolicy) pipelinePolicies.get(blockIndex)).record(SharedBuffer.getBufferKey());
       } else {
         // Handle the event for a generic policy
-        AccessEvent event = new AccessEvent(this.baseNode.key/* Additional details here */);
+        AccessEvent event = new AccessEvent(SharedBuffer.getBufferKey()/* Additional details here */);
         (pipelinePolicies.get(blockIndex)).record(event);
 
       }

@@ -105,7 +105,6 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-    key = SharedBuffer.getBufferKey();
     Node node = data.get(key);
 
     admittor.record(key);

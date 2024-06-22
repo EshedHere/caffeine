@@ -79,12 +79,18 @@ public final class GDWheelPolicy implements Policy {
     if (node == null) {
       policyStats.recordWeightedMiss(event.weight());
 //      System.out.println(event.weight());
-//      node = new Node(event.key());
+      node = new Node(event.key());
 
-      node = new Node(SharedBuffer.getBufferKey());
+//      node = new Node(SharedBuffer.getData());
+//      System.out.println("BEFIREONMISS got "+event.key+" and node key is " + node.key);
+
       onMiss(event, node);
     } else {
       policyStats.recordWeightedHit(event.weight());
+//      System.out.println("GDWBeforeonhit got "+event.key+" and node key is " + node.key);
+//      node = new Node(SharedBuffer.getBufferKey());
+      node = new Node(SharedBuffer.getData());
+
       onHit(event, node);
     }
   }
@@ -162,13 +168,17 @@ public final class GDWheelPolicy implements Policy {
   }
 
   private void onHit(AccessEvent event, Node node) {
+    //print event key and node key
+    System.out.println("GDW got "+event.key+" and node key is " + node.key);
     remove(node);
+
     onMiss(event, node);
   }
 
   private void remove(Node node) {
     data.remove(node.key);
     size -= node.weight;
+    //print node
     node.remove();
   }
 
@@ -271,7 +281,7 @@ public final class GDWheelPolicy implements Policy {
     }
     public Node(BaseNode basenode){
       this.key = basenode.key;
-//      super.key=this.key;
+      super.key=this.key;
 
     }
 
