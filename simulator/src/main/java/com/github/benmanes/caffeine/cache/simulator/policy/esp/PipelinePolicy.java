@@ -81,7 +81,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.keyTest=0;
     this.admittor = PipelineTinyLfu.getInstance(config, pipeLineStats);
 
-    System.out.println("pipeline lengtgh is " + this.pipeline_length);
+//    System.out.println("pipeline lengtgh is " + this.pipeline_length);
 
     //-----------------BUILD THE PIPELINE-------------------
 //    policyConstructor = new PolicyConstructor(config);
@@ -96,11 +96,12 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-
+//    System.out.println("Pipeline got "+key);
     this.admittor.sketch.increment(key); //increase freq value in sketch
     this.baseNode.key=key;
     SharedBuffer.insertData(this.baseNode);
     SharedBuffer.resetCounter();
+
     extCount =0;
 
     //------------ON HIT----------
@@ -110,12 +111,16 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       int blockIndex = lookUptable.get(this.baseNode.key);
       if (pipelinePolicies.get(blockIndex) instanceof KeyOnlyPolicy) {
         // Handle the event as a key-only event
+
         ((KeyOnlyPolicy) pipelinePolicies.get(blockIndex)).record(SharedBuffer.getBufferKey());
       } else {
         // Handle the event for a generic policy
-        AccessEvent event = new AccessEvent(SharedBuffer.getBufferKey()/* Additional details here */);
-        (pipelinePolicies.get(blockIndex)).record(event);
 
+        AccessEvent event = new AccessEvent(SharedBuffer.getBufferKey()/* Additional details here */);
+        //print shared buffer counter and i and ext count
+
+        (pipelinePolicies.get(blockIndex)).record(event);
+        //print record hit works
       }
       return;
       //PROPAGATION
@@ -138,34 +143,27 @@ for (int i = 0; i <= this.pipeline_length; i++) {
   extCount = SharedBuffer.getCounter();
         //If the SharedBuffer is increased by 1, activate the next block
 
-
+  //Check if Current Block evicted
+  //THIS IS ALWAYS TRUE FOR i=0
   if(extCount==i) {
-
-    //print i
-//    System.out.println("Pipeline got "+key+" and i is " + i);
+          //Check if last block  evicted
           if(i==this.pipeline_length) {
-//            System.out.println(extCount);
-//            System.out.println("Pipeline data before eviction "+this.lookUptable);
-
             lookUptable.remove(SharedBuffer.getBufferKey());
-//            System.out.println("Pipeline got "+this.baseNode.key+" and victim key is " + SharedBuffer.getBufferKey());
-//            System.out.println("Pipeline data after eviction "+this.lookUptable);
             continue;
           }
           lookUptable.put(SharedBuffer.getBufferKey(), i);
+
           //Activate the next block
           if (pipelinePolicies.get(i) instanceof KeyOnlyPolicy) {
-            // Handle the event as a key-only event
+            ((KeyOnlyPolicy) pipelinePolicies.get(i)).record(SharedBuffer.getBufferKey());
 
-//            if(SharedBuffer.getBufferKey()==0) {
-//              System.out.println("The buffer key key is: " + SharedBuffer.getBufferKey() + "   "+this.baseNode.key+"   block is  "+i);
-//
-//            }
-            ((KeyOnlyPolicy) pipelinePolicies.get(i)).record(this.baseNode.key);
           } else {
-            // Handle the event for a generic policy
-            AccessEvent event = new AccessEvent(key/* Additional details here */);
+
+            AccessEvent event = new AccessEvent(SharedBuffer.getBufferKey()/* Additional details here */);
             pipelinePolicies.get(i).record(event);
+
+//            System.out.println("Shared buffer counter is "+SharedBuffer.getCounter()+" and i is " +  " extCount is " + extCount);
+
           }
 
         }

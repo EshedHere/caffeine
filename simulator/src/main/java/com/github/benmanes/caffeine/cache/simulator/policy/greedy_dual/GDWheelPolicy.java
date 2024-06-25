@@ -26,6 +26,7 @@ import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.BaseNode;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import com.google.common.base.MoreObjects;
+import com.tangosol.util.Base;
 import com.typesafe.config.Config;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -78,33 +79,30 @@ public final class GDWheelPolicy implements Policy {
     policyStats.recordOperation();
     if (node == null) {
       policyStats.recordWeightedMiss(event.weight());
-//      System.out.println(event.weight());
-      node = new Node(event.key());
-
-//      node = new Node(SharedBuffer.getData());
-//      System.out.println("BEFIREONMISS got "+event.key+" and node key is " + node.key);
+      node = new Node(SharedBuffer.getData());
 
       onMiss(event, node);
     } else {
       policyStats.recordWeightedHit(event.weight());
-//      System.out.println("GDWBeforeonhit got "+event.key+" and node key is " + node.key);
-//      node = new Node(SharedBuffer.getBufferKey());
-      node = new Node(SharedBuffer.getData());
 
       onHit(event, node);
     }
   }
 
   private void onMiss(AccessEvent event, Node node) {
+
     if (event.weight() > maximumSize) {
+      //print evict event
       policyStats.recordEviction();
     } else {
       evict(event);
       add(event, node);
+
     }
   }
 
   private void evict(AccessEvent event) {
+
     // while there is not enough room in memory for p
     while ((size + event.weight()) > maximumSize) {
       // C[1] ← index of next non-empty queue in level 1 Cost Wheel
@@ -113,9 +111,13 @@ public final class GDWheelPolicy implements Policy {
         // Evict q at the tail of the C[1]th queue in level 1 Cost Wheel
         var victim = wheel[0][hand].prev;
         policyStats.recordEviction();
+        SharedBuffer.insertData(victim);
+//        System.out.println("GDW Evicted key "+ victim.key+" Shared buffer key is " + SharedBuffer.getBufferKey());
+
         remove(victim);
         SharedBuffer.incCounter();
-        SharedBuffer.insertData(victim);
+        //print shared buffer counter
+//        System.out.println("Shared buffer counter is " + SharedBuffer.getCounter());
 //        System.out.println("GDW got "+event.key+" evicted " + victim.key);
 
 
@@ -169,7 +171,7 @@ public final class GDWheelPolicy implements Policy {
 
   private void onHit(AccessEvent event, Node node) {
     //print event key and node key
-    System.out.println("GDW got "+event.key+" and node key is " + node.key);
+
     remove(node);
 
     onMiss(event, node);
@@ -178,7 +180,8 @@ public final class GDWheelPolicy implements Policy {
   private void remove(Node node) {
     data.remove(node.key);
     size -= node.weight;
-    //print node
+    //print node from remove
+
     node.remove();
   }
 
@@ -204,7 +207,9 @@ public final class GDWheelPolicy implements Policy {
     node.cost = event.missPenalty();
     node.weight = event.weight();
     sentinel.appendToHead(node);
+    //print node from add
     data.put(event.key(), node);
+
     size += event.weight();
   }
 
@@ -238,6 +243,7 @@ public final class GDWheelPolicy implements Policy {
 
     public Sentinel(int wheelIndex, int queueIndex) {
       super(Long.MIN_VALUE);
+
       this.wheelIndex = wheelIndex;
       this.queueIndex = queueIndex;
       prev = next = this;
@@ -250,10 +256,13 @@ public final class GDWheelPolicy implements Policy {
 
     /** Appends the node to the head of the list. */
     public void appendToHead(Node node) {
+      //print from append, node, node prev, this, node next
+
       node.prev = this;
       node.next = next;
       next.prev = node;
       next = node;
+
     }
 
     @Override
@@ -288,6 +297,7 @@ public final class GDWheelPolicy implements Policy {
     /** Removes the node from the list. */
     public void remove() {
       checkState(!(this instanceof Sentinel));
+
       prev.next = next;
       next.prev = prev;
       prev = next = null;
