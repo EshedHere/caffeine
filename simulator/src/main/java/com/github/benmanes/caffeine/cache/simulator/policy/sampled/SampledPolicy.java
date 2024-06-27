@@ -76,7 +76,8 @@ public class SampledPolicy implements KeyOnlyPolicy {
     this.admittor = admission.from(config, policyStats);
 
     SampledSettings settings = new SampledSettings(config);
-    this.maximumSize = Math.toIntExact(settings.PPmaximumSize()); //need to change
+//    this.maximumSize = Math.toIntExact(settings.PPmaximumSize()); //need to change
+    this.maximumSize =6;
     this.sampleStrategy = settings.sampleStrategy();
     this.random = new Random(settings.randomSeed());
 
@@ -327,11 +328,9 @@ public class SampledPolicy implements KeyOnlyPolicy {
        this.insertionTime = tick;
        this.accessTime = tick;
        this.key = basenode.key;
-//       this.recency=basenode.recency;
+
        super.key=this.key;
-//       super.accessTime=this.accessTime;
        this.index=index;
-//       super.index=this.index;
 
 
      }

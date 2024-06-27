@@ -19,7 +19,10 @@ public class SharedBuffer {
 
   // Method to insert data into the shared buffer
   public static synchronized void insertData(BaseNode newData) {
+    //print new data
     buffer= newData;
+    System.out.println("Shared buffer key is " + buffer.key);
+
   }
 
   // Method to get data from the shared buffer

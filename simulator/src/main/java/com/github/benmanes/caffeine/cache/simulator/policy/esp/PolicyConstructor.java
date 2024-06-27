@@ -39,6 +39,8 @@ public class PolicyConstructor{
   SegmentedLruSettings tempSegmentedLRUSettings;
   BasicSettings tempLinkedLRUSettings;
   GDWheelSettings tempGDWheelSettings;
+  TwoQueueSettings tempTwoQueueSettings;
+
   public Object createPolicyObject;
    boolean weighted;
   Set<Characteristic> characteristics;
@@ -56,8 +58,13 @@ public class PolicyConstructor{
       case "SampledLRU":
         tempSampledSettings = new SampledSettings(this.inConfig);
         SampledPolicy sampledLruPolicy = new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LRU, tempSampledSettings.config());
-//        sampledLruPolicy.admittor = Admittor.always();
+        sampledLruPolicy.maximumSize = 6;
         return sampledLruPolicy;
+      case "SampledFIFO":
+        tempSampledSettings = new SampledSettings(this.inConfig);
+        SampledPolicy sampledFifoPolicy = new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.FIFO, tempSampledSettings.config());
+        sampledFifoPolicy.maximumSize = 6;
+        return sampledFifoPolicy;
 
         case "LFU":
         tempSampledSettings = new SampledSettings(this.inConfig);
@@ -66,14 +73,20 @@ public class PolicyConstructor{
         tempSegmentedLRUSettings = new SegmentedLruSettings(this.inConfig);
         SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, tempSegmentedLRUSettings.config());
         segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
-//        segmentedLruPolicy.maximumSize = 256;
+        segmentedLruPolicy.maximumSize = 506;
         return segmentedLruPolicy;
       case "LinkedLRU":
         tempLinkedLRUSettings = new BasicSettings(this.inConfig);
         return new LinkedPolicy(tempLinkedLRUSettings.config(),this.characteristics,Admission.ALWAYS,LinkedPolicy.EvictionPolicy.LRU);
       case "GDWheel":
         tempGDWheelSettings = new GDWheelSettings(this.inConfig);
-        return new GDWheelPolicy(tempGDWheelSettings.config());
+        GDWheelPolicy gdwheel = new GDWheelPolicy(tempGDWheelSettings.config());
+        gdwheel.maximumSize = 172;
+        return gdwheel;
+        case "TwoQueue":
+          tempTwoQueueSettings = new TwoQueueSettings(this.inConfig);
+          TwoQueuePolicy twoQueuePolicy = new TwoQueuePolicy(tempTwoQueueSettings.config());
+          return twoQueuePolicy;
       default:
         return null;
     }

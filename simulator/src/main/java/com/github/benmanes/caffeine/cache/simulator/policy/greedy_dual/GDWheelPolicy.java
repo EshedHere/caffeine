@@ -49,7 +49,7 @@ public final class GDWheelPolicy implements Policy {
   private final Long2ObjectMap<Node> data;
   private final PolicyStats policyStats;
   private final Sentinel[][] wheel;
-  private final long maximumSize;
+  public long maximumSize;
   private final int[] clockHand;
   private final double[] cost;
 

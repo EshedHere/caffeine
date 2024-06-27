@@ -19,6 +19,9 @@ import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.BaseNode;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
+import com.github.benmanes.caffeine.cache.simulator.policy.linked.SegmentedLruPolicy;
 import com.google.common.base.MoreObjects;
 import com.typesafe.config.Config;
 
@@ -68,11 +71,18 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
     this.maximumSize = Math.toIntExact(settings.maximumSize());
     this.maxIn = (int) (maximumSize * settings.percentIn());
     this.maxOut = (int) (maximumSize * settings.percentOut());
+    //print all the settings
+    System.out.println("Maximum Size: "+maximumSize);
+    System.out.println("Max In: "+maxIn);
+    System.out.println("Max Out: "+maxOut);
+
   }
 
   @Override
   @SuppressWarnings({"PMD.ConfusingTernary", "PMD.SwitchStmtsShouldHaveDefault"})
   public void record(long key) {
+    //print got key to record
+
     // On accessing a page X :
     //   if X is in Am then
     //     move X to the head of Am
@@ -87,12 +97,20 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
     //   end if
 
     policyStats.recordOperation();
+
     Node node = data.get(key);
+//    node = new SegmentedLruPolicy.Node(SharedBuffer.getData());
+
+
+
     if (node != null) {
       switch (node.type) {
         case MAIN:
           node.moveToTail(headMain);
           policyStats.recordHit();
+          System.out.println("Twoqueue hit key is " + key);
+
+          //print node on hit
           return;
         case OUT:
           node.remove();
@@ -109,10 +127,15 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
         case IN:
           // do nothing
           policyStats.recordHit();
+          System.out.println("Twoqueue hit key is " + key);
+
           return;
       }
     } else {
-      node = new Node(key);
+      node = new Node(SharedBuffer.getData());//that shit
+//      node = new Node(SharedBuffer.getBufferKey());
+
+
       node.type = QueueType.IN;
 
       reclaimfor(node);
@@ -154,7 +177,19 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
         // OUT is full, drop oldest
         policyStats.recordEviction();
         Node victim = headOut.next;
+        System.out.println("Twoqueue victim key is " + victim.key);
+
+        SharedBuffer.incCounter();
+
+        SharedBuffer.insertData(victim);
+//print twoqueue read from shared buffer key
+        System.out.println("Twoqueue read from shared buffer key is " + SharedBuffer.getBufferKey());
+
         data.remove(victim.key);
+
+        //print evicted key
+
+
         victim.remove();
         sizeOut--;
       }
@@ -163,8 +198,18 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
       // OUT has room, evict from MAIN
       policyStats.recordEviction();
       Node victim = headMain.next;
+      System.out.println("Twoqueue victim key is " + victim.key);
+
+      SharedBuffer.incCounter();
+
+      SharedBuffer.insertData(victim);
+      System.out.println("Twoqueue read from shared buffer key is " + SharedBuffer.getBufferKey());
+
       data.remove(victim.key);
+      //print the victim key from twoqueue
+
       victim.remove();
+
       sizeMain--;
       data.put(node.key, node);
     }
@@ -181,7 +226,7 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
     OUT,
   }
 
-  public static final class Node {
+  public static  class Node extends BaseNode {
     final long key;
 
     Node prev;
@@ -192,12 +237,26 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
       this.key = Long.MIN_VALUE;
       this.prev = this;
       this.next = this;
+
+      super.key=this.key; //meh
+
     }
 
     public Node(long key) {
       this.key = key;
       this.prev = UNLINKED;
       this.next = UNLINKED;
+    }
+
+    public Node(BaseNode baseNode) {
+      this.key = baseNode.key;
+      this.prev = UNLINKED;
+      this.next = UNLINKED;
+
+      super.key=this.key;//meh
+
+
+
     }
 
     /** Appends the node to the tail of the list. */

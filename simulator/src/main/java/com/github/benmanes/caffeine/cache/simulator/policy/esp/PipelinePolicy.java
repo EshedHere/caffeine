@@ -2,7 +2,6 @@ package com.github.benmanes.caffeine.cache.simulator.policy.esp;
 
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
-import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
 import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.AccessEvent;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
@@ -14,8 +13,6 @@ import com.github.benmanes.caffeine.cache.simulator.policy.linked.SegmentedLruPo
 import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TwoQueuePolicy;
 import com.tangosol.util.Base;
 import com.typesafe.config.Config;
-import com.github.benmanes.caffeine.cache.simulator.policy.esp.SuperPolicy;
-import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import org.checkerframework.checker.units.qual.Length;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
 import java.util.*;
@@ -80,6 +77,9 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.baseNode = new BaseNode();
     this.keyTest=0;
     this.admittor = PipelineTinyLfu.getInstance(config, pipeLineStats);
+    int [][] admission_fla_mat = new int[pipeline_length][pipeline_length];
+    ControlBuffer controlBuffer = ControlBuffer.getInstance(pipeline_length);
+    controlBuffer.insertData(admission_fla_mat);
 
 //    System.out.println("pipeline lengtgh is " + this.pipeline_length);
 
@@ -108,6 +108,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     if(lookUptable.get(this.baseNode.key) != null) {
       pipeLineStats.recordOperation();
       pipeLineStats.recordHit();
+      System.out.println("Pipeline hit key is " + key);
       int blockIndex = lookUptable.get(this.baseNode.key);
       if (pipelinePolicies.get(blockIndex) instanceof KeyOnlyPolicy) {
         // Handle the event as a key-only event
@@ -149,6 +150,8 @@ for (int i = 0; i <= this.pipeline_length; i++) {
           //Check if last block  evicted
           if(i==this.pipeline_length) {
             lookUptable.remove(SharedBuffer.getBufferKey());
+            //print evicted key
+            System.out.println("Pipeline evicted key is " + SharedBuffer.getBufferKey());
             continue;
           }
           lookUptable.put(SharedBuffer.getBufferKey(), i);
@@ -182,7 +185,7 @@ for (int i = 0; i <= this.pipeline_length; i++) {
   public void finished() {
     // Ensure that all resources are properly cleaned up
 //    System.out.println(data.size());
-    superPolicy.twoQueuePolicy.finished();
+//    superPolicy.twoQueuePolicy.finished();
   }
 
 
