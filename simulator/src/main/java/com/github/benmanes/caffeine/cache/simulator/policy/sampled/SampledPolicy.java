@@ -76,8 +76,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
     this.admittor = admission.from(config, policyStats);
 
     SampledSettings settings = new SampledSettings(config);
-//    this.maximumSize = Math.toIntExact(settings.PPmaximumSize()); //need to change
-    this.maximumSize =6;
+    this.maximumSize = Math.toIntExact(settings.maximumSize()); //need to change
     this.sampleStrategy = settings.sampleStrategy();
     this.random = new Random(settings.randomSeed());
 
@@ -106,8 +105,7 @@ public class SampledPolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-    //print smapled got key
-//    System.out.println("Sampled got key "+key);
+
     Node node = data.get(key);
 
     admittor.record(key);

@@ -2,6 +2,7 @@ package com.github.benmanes.caffeine.cache.simulator.policy.esp;
 
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
+import com.github.benmanes.caffeine.cache.simulator.admission.GlobalAdmittor;
 import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.AccessEvent;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
@@ -30,22 +31,22 @@ import static java.util.Locale.US;
 @PolicySpec(name = "esp.PipelinePolicy")
 public final class PipelinePolicy implements KeyOnlyPolicy {
 
-  private final SuperPolicy superPolicy;
+//  private final SuperPolicy superPolicy;
   public PolicyStats pipeLineStats;
   private BaseNode baseNode;
   public String pipelineOrder;
   final int maximumSize;
   private final HashMap<Long, Integer> lookUptable;
-  int maxEntries;
+  int blockMaxSize;
   String pipelineList;
   int pipeline_length;
   String[] pipelineArray;
   List<Policy> pipelinePolicies =new ArrayList<>();
   PolicyConstructor policyConstructor;
-  Config confTest;
   private final PipelineTinyLfu admittor;
   int extCount=0; //used for tracking nodes in the pipeline + pipeline current stage
-  private int keyTest=0;
+  private int keyTest=0,admissionCounter=0;
+  int [][] admission_flag_mat;
   static class PipelineSettings extends BasicSettings {
   public PipelineSettings(Config config) {
     super(config);
@@ -62,11 +63,10 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
   public PipelinePolicy(Config config) {
     this.policyConstructor = new PolicyConstructor(config);
 //------------------INIT--------------------
-    superPolicy = new SuperPolicy(config);
     this.pipeLineStats = new PolicyStats("PipeLine");
     PipelineSettings settings = new PipelineSettings(config);
     this.maximumSize = Math.toIntExact(settings.maximumSize());
-//    this.maxEntries = 512;
+
     //NOTE - the lookup table structure is affecting the results, each run is different
     this.lookUptable = new HashMap<Long, Integer>();//load factor affects the results can also be used with linked HashMap;
     //------------EXTRACT THE PIPELINE ORDER----------------
@@ -77,18 +77,26 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.baseNode = new BaseNode();
     this.keyTest=0;
     this.admittor = PipelineTinyLfu.getInstance(config, pipeLineStats);
-    int [][] admission_fla_mat = new int[pipeline_length][pipeline_length];
-    ControlBuffer controlBuffer = ControlBuffer.getInstance(pipeline_length);
-    controlBuffer.insertData(admission_fla_mat);
+  //------------INITIALIZE THE ADMISSION FLAG MATRIX----------------
+    this.admission_flag_mat = new int[pipeline_length][pipeline_length];
+    for (int i = 0; i < pipeline_length; i++) {
+      for (int j = 0; j < pipeline_length; j++) {
+        this.admission_flag_mat[i][j] = 0;
+      }
+    }
+    // Modify the second row to use the second TinyLFU sketch for Block 1
+    this.admission_flag_mat[1][1] = 1;
+    //--------------------------
+    ControlBuffer.getInstance(pipeline_length).insertData(admission_flag_mat);
 
-//    System.out.println("pipeline lengtgh is " + this.pipeline_length);
+    blockMaxSize= maximumSize/pipeline_length;
+    this.admissionCounter =0;
 
     //-----------------BUILD THE PIPELINE-------------------
 //    policyConstructor = new PolicyConstructor(config);
     for (int i = 0; i < this.pipeline_length; i++) {
-      pipelinePolicies.add(this.policyConstructor.createPolicy(this.pipelineArray[i]));
-//      pipelinePolicies.add(superPolicy.segmentedLRUPolicy);
-//      pipelinePolicies.add(superPolicy.gdWheelPolicy);
+      pipelinePolicies.add(this.policyConstructor.createPolicy(this.pipelineArray[i],blockMaxSize));
+
 
     }
 
@@ -96,8 +104,18 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
   @Override
   public void record(long key) {
-//    System.out.println("Pipeline got "+key);
+    //print key
+
+    admissionCounter++;
+    if(admissionCounter%10000==0){
+      System.out.println("Admission counter is "+admissionCounter);
+      ControlBuffer.setFlag();
+//      this.admission_flag_mat[1][1] = 0;
+      ControlBuffer.getInstance(pipeline_length).insertData(admission_flag_mat);
+
+    }
     this.admittor.sketch.increment(key); //increase freq value in sketch
+//    GlobalAdmittor.tinyLfuAdmittors[0].record(key);
     this.baseNode.key=key;
     SharedBuffer.insertData(this.baseNode);
     SharedBuffer.resetCounter();
@@ -108,7 +126,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     if(lookUptable.get(this.baseNode.key) != null) {
       pipeLineStats.recordOperation();
       pipeLineStats.recordHit();
-      System.out.println("Pipeline hit key is " + key);
+//      System.out.println("Pipeline hit key is " + key);
       int blockIndex = lookUptable.get(this.baseNode.key);
       if (pipelinePolicies.get(blockIndex) instanceof KeyOnlyPolicy) {
         // Handle the event as a key-only event
@@ -151,7 +169,7 @@ for (int i = 0; i <= this.pipeline_length; i++) {
           if(i==this.pipeline_length) {
             lookUptable.remove(SharedBuffer.getBufferKey());
             //print evicted key
-            System.out.println("Pipeline evicted key is " + SharedBuffer.getBufferKey());
+//            System.out.println("Pipeline evicted key is " + SharedBuffer.getBufferKey());
             continue;
           }
           lookUptable.put(SharedBuffer.getBufferKey(), i);

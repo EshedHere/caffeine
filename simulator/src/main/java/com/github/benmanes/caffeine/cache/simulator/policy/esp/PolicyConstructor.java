@@ -5,46 +5,44 @@ import java.util.Set;
 
 import com.github.benmanes.caffeine.cache.simulator.BasicSettings;
 import com.github.benmanes.caffeine.cache.simulator.admission.Admission;
-import com.github.benmanes.caffeine.cache.simulator.admission.Admittor;
+import com.github.benmanes.caffeine.cache.simulator.admission.GlobalAdmittor;
 import com.github.benmanes.caffeine.cache.simulator.admission.PipelineTinyLfu;
 import com.github.benmanes.caffeine.cache.simulator.policy.Policy;
-import com.github.benmanes.caffeine.cache.simulator.policy.Policy.KeyOnlyPolicy;
-import com.github.benmanes.caffeine.cache.simulator.policy.Policy.PolicySpec;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
 import com.github.benmanes.caffeine.cache.simulator.policy.linked.SegmentedLruPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.linked.LinkedPolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.greedy_dual.GDWheelPolicy;
 
 import com.github.benmanes.caffeine.cache.simulator.policy.sampled.SampledPolicy;
-import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TuQueuePolicy;
 import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TwoQueuePolicy;
-import com.tangosol.util.Base;
-import com.typesafe.config.Config;
-import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
-import org.checkerframework.checker.units.qual.Length;
+import com.github.benmanes.caffeine.cache.simulator.policy.two_queue.TuQueuePolicy;
 
-import java.util.*;
+import com.typesafe.config.Config;
 
 import static com.github.benmanes.caffeine.cache.simulator.policy.Policy.Characteristic.WEIGHTED;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Locale.US;
-
+import com.typesafe.config.ConfigFactory;
 
 
 public class PolicyConstructor{
   // POLICIES
   Config inConfig;
   PolicyStats IntraStats;
-  static SampledSettings tempSampledSettings;
-  SegmentedLruSettings tempSegmentedLRUSettings;
+
   BasicSettings tempLinkedLRUSettings;
   GDWheelSettings tempGDWheelSettings;
-  TwoQueueSettings tempTwoQueueSettings;
 
-  public Object createPolicyObject;
+
+  String customConfigOverrides;
+
+  Config customConfig;
+  Config combinedConfig;
    boolean weighted;
   Set<Characteristic> characteristics;
-
+  int sampleSize;
+  String sampleStrategy;
+  double percentProtected;
 
   public PolicyConstructor(Config config) {
   this.inConfig = config;
@@ -53,106 +51,146 @@ public class PolicyConstructor{
   this.characteristics = Set.of(WEIGHTED);
 
   }
-  public Policy createPolicy(String policyName){
+  public Policy createPolicy(String policyName, int maxSize){
     switch (policyName) {
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       case "SampledLRU":
-        tempSampledSettings = new SampledSettings(this.inConfig);
-        SampledPolicy sampledLruPolicy = new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LRU, tempSampledSettings.config());
-        sampledLruPolicy.maximumSize = 6;
+        // Extract the overriding values from the original config
+         sampleSize = this.inConfig.getInt("esp.sampled.size");
+         sampleStrategy = this.inConfig.getString("esp.sampled.strategy");
+        // Create the custom configuration overrides as a string
+         customConfigOverrides =
+           "maximum-size = " + maxSize + "\n"+
+          "sampled.size = " + sampleSize + "\n" +
+            "sampled.strategy = " + sampleStrategy;
+        // Parse the custom configuration overrides
+         customConfig = ConfigFactory.parseString(customConfigOverrides);
+        // Combine the custom configuration with the existing one
+         combinedConfig = customConfig.withFallback(this.inConfig);
+        // Create a new SampledPolicy with the combined config
+        SampledPolicy sampledLruPolicy = new SampledPolicy(
+          Admission.ALWAYS,
+          SampledPolicy.EvictionPolicy.LRU,
+          combinedConfig
+        );
         return sampledLruPolicy;
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
       case "SampledFIFO":
-        tempSampledSettings = new SampledSettings(this.inConfig);
-        SampledPolicy sampledFifoPolicy = new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.FIFO, tempSampledSettings.config());
-        sampledFifoPolicy.maximumSize = 6;
+        // Extract the overriding values from the original config
+        //print maxSize value
+         sampleSize = this.inConfig.getInt("esp.sampled.size");
+         sampleStrategy = this.inConfig.getString("esp.sampled.strategy");
+        // Create the custom configuration overrides as a string
+        customConfigOverrides =
+          "sampled.size = " + sampleSize + "\n" +
+            "sampled.strategy = \"" + sampleStrategy + "\"\n" +
+            "maximum-size = " + maxSize;
+        // Parse the custom configuration overrides
+        customConfig = ConfigFactory.parseString(customConfigOverrides);
+        // Combine the custom configuration with the existing one
+        combinedConfig = customConfig.withFallback(this.inConfig);
+        // Create a new SampledPolicy with the combined config
+        SampledPolicy sampledFifoPolicy = new SampledPolicy(
+          Admission.ALWAYS,
+          SampledPolicy.EvictionPolicy.FIFO,
+          combinedConfig
+        );
         return sampledFifoPolicy;
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
         case "LFU":
-        tempSampledSettings = new SampledSettings(this.inConfig);
-        return new SampledPolicy(Admission.ALWAYS, SampledPolicy.EvictionPolicy.LFU, tempSampledSettings.config());
+          // Extract the overriding values from the original config
+          sampleSize = this.inConfig.getInt("esp.sampled.size");
+          sampleStrategy = this.inConfig.getString("esp.sampled.strategy");
+          // Create the custom configuration overrides as a string
+          customConfigOverrides =
+            "maximum-size = " + maxSize + "\n"+
+            "sampled.size = " + sampleSize + "\n" +
+              "sampled.strategy = " + sampleStrategy;
+          // Parse the custom configuration overrides
+          customConfig = ConfigFactory.parseString(customConfigOverrides);
+          // Combine the custom configuration with the existing one
+          combinedConfig = customConfig.withFallback(this.inConfig);
+          // Create a new SampledPolicy with the combined config
+          SampledPolicy sampledLfuPolicy = new SampledPolicy(
+            Admission.ALWAYS,
+            SampledPolicy.EvictionPolicy.LFU,
+            combinedConfig
+          );
+          return sampledLfuPolicy;
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       case "SegmentedLRU":
-        tempSegmentedLRUSettings = new SegmentedLruSettings(this.inConfig);
-        SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, tempSegmentedLRUSettings.config());
+        // Extract the overriding values from the original config
+        percentProtected = this.inConfig.getInt("esp.segmented-lru.percent-protected");
+        // Create the custom configuration overrides as a string
+        customConfigOverrides =
+          "maximum-size = " + maxSize + "\n"+
+            "percent-protected = " + sampleSize;
+        // Parse the custom configuration overrides
+        customConfig = ConfigFactory.parseString(customConfigOverrides);
+        // Combine the custom configuration with the existing one
+        combinedConfig = customConfig.withFallback(this.inConfig);
+        // Create a new SampledPolicy with the combined config
+        SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, combinedConfig);
         segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
-        segmentedLruPolicy.maximumSize = 506;
+//        segmentedLruPolicy.admittor = new GlobalAdmittor(this.inConfig, IntraStats, 2, 1);
+
         return segmentedLruPolicy;
+
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       case "LinkedLRU":
         tempLinkedLRUSettings = new BasicSettings(this.inConfig);
         return new LinkedPolicy(tempLinkedLRUSettings.config(),this.characteristics,Admission.ALWAYS,LinkedPolicy.EvictionPolicy.LRU);
-      case "GDWheel":
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        case "GDWheel":
         tempGDWheelSettings = new GDWheelSettings(this.inConfig);
         GDWheelPolicy gdwheel = new GDWheelPolicy(tempGDWheelSettings.config());
         gdwheel.maximumSize = 172;
         return gdwheel;
-        case "TwoQueue":
-          tempTwoQueueSettings = new TwoQueueSettings(this.inConfig);
-          TwoQueuePolicy twoQueuePolicy = new TwoQueuePolicy(tempTwoQueueSettings.config());
-          return twoQueuePolicy;
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      case "TwoQueue":
+        // Extract the overriding values from the original config
+        double percentIn = this.inConfig.getDouble("esp.two-queue.percent-in");
+        double percentOut = this.inConfig.getDouble("esp.two-queue.percent-out");
+        // Create the custom configuration overrides as a string
+        customConfigOverrides =
+          "maximum-size = " + maxSize + "\n"+
+          "two-queue.percent-in = " + percentIn + "\n" +
+            "two-queue.percent-out = " + percentOut;
+        // Parse the custom configuration overrides
+        customConfig = ConfigFactory.parseString(customConfigOverrides);
+        // Combine the custom configuration with the existing one
+        combinedConfig = customConfig.withFallback(this.inConfig);
+        // Create a new TwoQueuePolicy with the combined config
+        TwoQueuePolicy twoQueuePolicy = new TwoQueuePolicy(combinedConfig);
+        return twoQueuePolicy;
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      case "TuQueue":
+        // Extract the overriding values from the original config
+        double percentHot = this.inConfig.getDouble("esp.two-queue.percent-hot");
+        double percentWarm = this.inConfig.getDouble("esp.two-queue.percent-warm");
+        // Create the custom configuration overrides as a string
+        customConfigOverrides =
+          "maximum-size = " + maxSize + "\n"+
+          "two-queue.percent-in = " + percentHot + "\n" +
+            "two-queue.percent-out = " + percentWarm;
+        // Parse the custom configuration overrides
+        customConfig = ConfigFactory.parseString(customConfigOverrides);
+        // Combine the custom configuration with the existing one
+        combinedConfig = customConfig.withFallback(this.inConfig);
+        // Create a new TwoQueuePolicy with the combined config
+        TuQueuePolicy tuQueuePolicy = new TuQueuePolicy(combinedConfig);
+        return tuQueuePolicy;
+      //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       default:
         return null;
     }
   }
 
 
-  // Define the custom TwoQueueSettings class with the overridden methods
-  static class TwoQueueSettings extends BasicSettings {
-    public TwoQueueSettings(Config config) {
-      super(config);
-    }
-
-    public double percentIn() {
-      // Redirect to relevant field in the config file
-      return config().getDouble("esp.two-queue.percent-in");
-    }
-
-    public double percentOut() {
-      // Redirect to relevant field in the config file
-      return config().getDouble("esp.two-queue.percent-out");
-    }
-  }
-  static class TuQueueSettings extends BasicSettings {
-
-    public TuQueueSettings(Config config) {
-      super(config);
-    }
-
-    public double percentHot() {
-      double percentHot = config().getDouble("esp.tu-queue.percent-hot");
-      checkState(percentHot < 1.0);
-      return percentHot;
-    }
-
-    public double percentWarm() {
-      double percentWarm = config().getDouble("esp.tu-queue.percent-warm");
-      checkState(percentWarm < 1.0);
-      return percentWarm;
-    }
-  }
-  static class SampledSettings extends BasicSettings {
-    public SampledSettings(Config config) {
-      super(config);
-    }
-
-    public int sampleSize() {
-      return config().getInt("esp.sampled.size");
-    }
-
-    public SampledPolicy.Sample sampleStrategy() {
-      return SampledPolicy.Sample.valueOf(config().getString("esp.sampled.strategy").toUpperCase(US));
-    }
-
-  }
-  static class SegmentedLruSettings extends BasicSettings {
-
-    public SegmentedLruSettings(Config config) {
-      super(config);
-    }
-
-    public double percentProtected() {
-      return config().getDouble("esp.segmented-lru.percent-protected");
-    }
 
 
-  }
 
   private static final class GDWheelSettings extends BasicSettings {
     public GDWheelSettings(Config config) {

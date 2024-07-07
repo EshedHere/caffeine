@@ -73,8 +73,8 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
     this.maxOut = (int) (maximumSize * settings.percentOut());
     //print all the settings
     System.out.println("Maximum Size: "+maximumSize);
-    System.out.println("Max In: "+maxIn);
-    System.out.println("Max Out: "+maxOut);
+    System.out.println("Max In: "+settings.percentIn());
+    System.out.println("Max Out: "+settings.percentOut());
 
   }
 
@@ -108,7 +108,6 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
         case MAIN:
           node.moveToTail(headMain);
           policyStats.recordHit();
-          System.out.println("Twoqueue hit key is " + key);
 
           //print node on hit
           return;
@@ -127,13 +126,12 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
         case IN:
           // do nothing
           policyStats.recordHit();
-          System.out.println("Twoqueue hit key is " + key);
 
           return;
       }
     } else {
       node = new Node(SharedBuffer.getData());//that shit
-//      node = new Node(SharedBuffer.getBufferKey());
+//      node = new Node(key);
 
 
       node.type = QueueType.IN;
@@ -177,13 +175,10 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
         // OUT is full, drop oldest
         policyStats.recordEviction();
         Node victim = headOut.next;
-        System.out.println("Twoqueue victim key is " + victim.key);
 
         SharedBuffer.incCounter();
 
         SharedBuffer.insertData(victim);
-//print twoqueue read from shared buffer key
-        System.out.println("Twoqueue read from shared buffer key is " + SharedBuffer.getBufferKey());
 
         data.remove(victim.key);
 
@@ -198,12 +193,10 @@ public class TwoQueuePolicy implements KeyOnlyPolicy {
       // OUT has room, evict from MAIN
       policyStats.recordEviction();
       Node victim = headMain.next;
-      System.out.println("Twoqueue victim key is " + victim.key);
 
       SharedBuffer.incCounter();
 
       SharedBuffer.insertData(victim);
-      System.out.println("Twoqueue read from shared buffer key is " + SharedBuffer.getBufferKey());
 
       data.remove(victim.key);
       //print the victim key from twoqueue

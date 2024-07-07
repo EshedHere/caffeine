@@ -4,7 +4,7 @@ public class ControlBuffer {
   private static ControlBuffer instance = null;
   private int[][] flagMatrix;
 
-  private int counter = 0;
+  private int counter = 0,controlFlag=0;
 
   // Private constructor to prevent external instantiation
   private ControlBuffer(int pipelineLength) {
@@ -47,14 +47,35 @@ public class ControlBuffer {
     }
     flagMatrix[row][column] = value;
   }
-
-  // Counter manipulation methods
-  public synchronized void incCounter() {
-    this.counter++;
+  public synchronized int[] getRow(int rowIndex) {
+    if (rowIndex < 0 || rowIndex >= flagMatrix.length) {
+      throw new IndexOutOfBoundsException("Invalid row index: " + rowIndex);
+    }
+    return flagMatrix[rowIndex];
   }
 
-  public synchronized void resetCounter() {
-    this.counter = 0;
+  // Checks if a row in the matrix indicates that "always admit" should be used
+  public synchronized boolean isAlwaysAdmit(int rowIndex) {
+    int[] row = getRow(rowIndex);
+    for (int cell : row) {
+      if (cell != 0) {
+        return false; // If any cell is not 0, then do not always admit
+      }
+    }
+    return true; // If all cells are 0, then always admit
+  }
+
+
+  //The control buffer will check this flag to determine if flagMatrix should be read
+  public synchronized int readFlag() {
+    return this.controlFlag;
+  }
+
+  public static synchronized void setFlag() {
+    instance.controlFlag=1;
+  }
+  public synchronized void resetFlag() {
+    this.controlFlag=0;
   }
 
   public synchronized int getCounter() {

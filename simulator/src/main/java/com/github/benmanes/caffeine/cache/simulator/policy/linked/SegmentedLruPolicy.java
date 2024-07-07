@@ -82,8 +82,7 @@ public final class SegmentedLruPolicy implements KeyOnlyPolicy {
     this.headProtected = new Node();
     this.headProbation = new Node();
     this.data = new Long2ObjectOpenHashMap<>();
-    this.maximumSize = Math.toIntExact(settings.PPmaximumSize());
-    this.maximumSize = 506;
+    this.maximumSize = Math.toIntExact(settings.maximumSize());
     this.maxProtected = (int) (maximumSize * settings.percentProtected());
     //print maxProtected and maximumSize
 //    System.out.println("maxProtected is " + maxProtected);

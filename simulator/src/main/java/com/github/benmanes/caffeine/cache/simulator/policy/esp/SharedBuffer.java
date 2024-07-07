@@ -21,7 +21,7 @@ public class SharedBuffer {
   public static synchronized void insertData(BaseNode newData) {
     //print new data
     buffer= newData;
-    System.out.println("Shared buffer key is " + buffer.key);
+//    System.out.println("Shared buffer key is " + buffer.key);
 
   }
 
