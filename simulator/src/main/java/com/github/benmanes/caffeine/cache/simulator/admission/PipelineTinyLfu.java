@@ -107,7 +107,7 @@ public final class PipelineTinyLfu implements KeyOnlyAdmittor {
 
   @Override
   public boolean admit(long candidateKey, long victimKey) { //if true admit victim
-    sketch.reportMiss();
+//    sketch.reportMiss();
 
     int victimFreq = sketch.frequency(victimKey);
     int candidateFreq = sketch.frequency(candidateKey);
@@ -120,6 +120,9 @@ public final class PipelineTinyLfu implements KeyOnlyAdmittor {
     policyStats.recordRejection();
     return false;
 //    return true;// ALWAYS ADMIT
+  }
+  public void increment(long key) {
+    sketch.increment(key);
   }
   public static PipelineTinyLfu getInstance(Config config, PolicyStats policyStats) {
     if (instance == null) { //First check

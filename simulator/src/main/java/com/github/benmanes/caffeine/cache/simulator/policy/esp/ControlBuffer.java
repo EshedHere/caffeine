@@ -74,6 +74,9 @@ public class ControlBuffer {
   public static synchronized void setFlag() {
     instance.controlFlag=1;
   }
+  public static synchronized int getFlag() {
+    return instance.controlFlag;
+  }
   public synchronized void resetFlag() {
     this.controlFlag=0;
   }

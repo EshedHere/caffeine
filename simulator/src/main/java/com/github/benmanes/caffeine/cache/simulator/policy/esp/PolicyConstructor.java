@@ -134,7 +134,7 @@ public class PolicyConstructor{
         // Create a new SampledPolicy with the combined config
         SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, combinedConfig);
         segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
-//        segmentedLruPolicy.admittor = new GlobalAdmittor(this.inConfig, IntraStats, 2, 1);
+//        segmentedLruPolicy.admittor =  GlobalAdmittor.getInstance(this.inConfig, IntraStats, 2, 1);
 
         return segmentedLruPolicy;
 
