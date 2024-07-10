@@ -3,13 +3,14 @@ package com.github.benmanes.caffeine.cache.simulator.admission;
 import com.github.benmanes.caffeine.cache.simulator.policy.AccessEvent;
 import com.github.benmanes.caffeine.cache.simulator.policy.PolicyStats;
 import com.github.benmanes.caffeine.cache.simulator.policy.esp.ControlBuffer;
+import com.github.benmanes.caffeine.cache.simulator.policy.esp.SharedBuffer;
 import com.typesafe.config.Config;
 
 import java.util.Arrays;
 
 public class GlobalAdmittor implements Admittor {
 
-  public static Admittor[] tinyLfuAdmittors = new Admittor[0];
+  public static Admittor[] tinyLfuAdmittors;
   private final ControlBuffer controlBuffer;
   private final Admittor alwaysAdmittor;
   private static GlobalAdmittor instance;
@@ -20,7 +21,7 @@ public class GlobalAdmittor implements Admittor {
     // Ensure the tinyLfuAdmittors array is at least as long as the longest row in the ControlBuffer
       tinyLfuAdmittors = new Admittor[numTinyLfuAdmittors];
     for (int i = 0; i < tinyLfuAdmittors.length; i++) {
-//      tinyLfuAdmittors[i] =  PipelineTinyLfu.getInstance(config, policyStats);
+      tinyLfuAdmittors[i] =  new PipelineTinyLfu(config, policyStats);
     }
 
     this.alwaysAdmittor = Admittor.always();
@@ -35,12 +36,16 @@ public class GlobalAdmittor implements Admittor {
 
   @Override
   public boolean admit(long candidateKey, long victimKey) {
-    int rowIndex = controlBuffer.getSketchIndex(candidateKey);
+    int rowIndex = controlBuffer.getSketchIndex(SharedBuffer.getCounter());
     int[] admitFlags = controlBuffer.getRow(rowIndex);
 
     for (int i = 0; i < admitFlags.length; i++) {
       if (admitFlags[i] == 1) { // Found the first TinyLFU admittor to consult
+
+
         return tinyLfuAdmittors[i].admit(candidateKey, victimKey);
+//        return tinyLfuAdmittors[i].admit(victimKey, candidateKey);
+
       }
     }
     // If no TinyLFU admittors were flagged, use the alwaysAdmittor
@@ -49,22 +54,8 @@ public class GlobalAdmittor implements Admittor {
 
   @Override
   public void record(long key) {
-    int rowIndex = controlBuffer.getSketchIndex(key);
-    int[] recordFlags = controlBuffer.getRow(rowIndex);
 
-    // If all flags are zero, record using alwaysAdmittor
-    if (Arrays.stream(recordFlags).allMatch(flag -> flag == 0)) {
-      alwaysAdmittor.record(key);
-      return;
-    }
 
-    // Otherwise, record using the flagged TinyLFU admittors
-    for (int i = 0; i < recordFlags.length; i++) {
-      if (recordFlags[i] == 1) {
-//        System.out.println("Using admittor "+ i);
-        tinyLfuAdmittors[i].record(key);
-      }
-    }
   }
 
   // Handle access events for record and admit by simply delegating to the corresponding long key methods
@@ -79,10 +70,10 @@ public class GlobalAdmittor implements Admittor {
   }
   public static void recordAll(long key) {
     for (Admittor admittor : tinyLfuAdmittors) {
-      if (admittor instanceof PipelineTinyLfu) {
-        ((PipelineTinyLfu) admittor).increment(key);
+      // Use the increment method within PipelineTinyLfu class
+      ((PipelineTinyLfu) admittor).increment(key);
       }
     }
   }
-}
+
 

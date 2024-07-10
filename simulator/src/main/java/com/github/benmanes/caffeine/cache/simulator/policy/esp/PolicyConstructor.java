@@ -73,6 +73,8 @@ public class PolicyConstructor{
           SampledPolicy.EvictionPolicy.LRU,
           combinedConfig
         );
+        sampledLruPolicy.admittor=GlobalAdmittor.getInstance(this.inConfig, IntraStats, 2, 1);
+
         return sampledLruPolicy;
       //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,8 +135,8 @@ public class PolicyConstructor{
         combinedConfig = customConfig.withFallback(this.inConfig);
         // Create a new SampledPolicy with the combined config
         SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, combinedConfig);
-        segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
-//        segmentedLruPolicy.admittor =  GlobalAdmittor.getInstance(this.inConfig, IntraStats, 2, 1);
+//        segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
+        segmentedLruPolicy.admittor =  GlobalAdmittor.getInstance(this.inConfig, IntraStats, 2, 1);
 
         return segmentedLruPolicy;
 

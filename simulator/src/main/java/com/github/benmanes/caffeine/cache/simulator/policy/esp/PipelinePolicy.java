@@ -31,7 +31,6 @@ import static java.util.Locale.US;
 @PolicySpec(name = "esp.PipelinePolicy")
 public final class PipelinePolicy implements KeyOnlyPolicy {
 
-//  private final SuperPolicy superPolicy;
   public PolicyStats pipeLineStats;
   private BaseNode baseNode;
   public String pipelineOrder;
@@ -43,10 +42,10 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
   String[] pipelineArray;
   List<Policy> pipelinePolicies =new ArrayList<>();
   PolicyConstructor policyConstructor;
-  private final PipelineTinyLfu admittor;
+//  private final PipelineTinyLfu admittor;
   int extCount=0; //used for tracking nodes in the pipeline + pipeline current stage
   private int keyTest=0,admissionCounter=0;
-//  GlobalAdmittor globalAdmittor;
+  private final GlobalAdmittor globalAdmittor;
   int [][] admission_flag_mat;
   static class PipelineSettings extends BasicSettings {
   public PipelineSettings(Config config) {
@@ -77,8 +76,7 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     this.pipeline_length = this.pipelineArray.length;
     this.baseNode = new BaseNode();
     this.keyTest=0;
-    this.admittor =  PipelineTinyLfu.getInstance(config, pipeLineStats);
-//    this.globalAdmittor = GlobalAdmittor.getInstance(config,  new PolicyStats("GlobalAdmittor"), 2, 1);
+//    this.admittor =  PipelineTinyLfu.getInstance(config, pipeLineStats);
   //------------INITIALIZE THE ADMISSION FLAG MATRIX----------------
     this.admission_flag_mat = new int[pipeline_length][pipeline_length];
     for (int i = 0; i < pipeline_length; i++) {
@@ -93,6 +91,8 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     ControlBuffer.setFlag();
     blockMaxSize= maximumSize/pipeline_length;
     this.admissionCounter =0;
+    this.globalAdmittor = GlobalAdmittor.getInstance(config,  new PolicyStats("GlobalAdmittor"), 2, 1);
+
 
     //-----------------BUILD THE PIPELINE-------------------
 //    policyConstructor = new PolicyConstructor(config);
@@ -107,20 +107,23 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
   @Override
   public void record(long key) {
     //print key
-//    GlobalAdmittor.recordAll(key);
 //    admissionCounter++;
-    admissionCounter=1;
+    GlobalAdmittor.recordAll(key);
+
+    admissionCounter++;
     if(admissionCounter%10000==0){
       System.out.println("Admission counter is "+admissionCounter);
       ControlBuffer.setFlag();
       this.admission_flag_mat[1][1] = 0;
+      this.admission_flag_mat[0][0] = 1;
+
       ControlBuffer.getInstance(pipeline_length).insertData(admission_flag_mat);
 
     }
-    this.admittor.increment(key); //increase freq value in sketch
+
+//    this.admittor.increment(key); //increase freq value in sketch
 
     //increase freq value in sketch
-//    GlobalAdmittor.tinyLfuAdmittors[0].record(key);
     this.baseNode.key=key;
     SharedBuffer.insertData(this.baseNode);
     SharedBuffer.resetCounter();
