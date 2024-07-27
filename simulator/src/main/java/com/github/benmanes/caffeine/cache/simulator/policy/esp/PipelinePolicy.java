@@ -114,8 +114,8 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
     if(admissionCounter%10000==0){
       System.out.println("Admission counter is "+admissionCounter);
       ControlBuffer.setFlag();
-      this.admission_flag_mat[1][1] = 0;
-      this.admission_flag_mat[0][0] = 1;
+//      this.admission_flag_mat[1][1] = 0;
+//      this.admission_flag_mat[0][0] = 1;
 
       ControlBuffer.getInstance(pipeline_length).insertData(admission_flag_mat);
 
