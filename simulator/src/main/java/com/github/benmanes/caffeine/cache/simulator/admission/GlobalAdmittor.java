@@ -37,14 +37,13 @@ public class GlobalAdmittor implements Admittor {
   @Override
   public boolean admit(long candidateKey, long victimKey) {
     int rowIndex = controlBuffer.getSketchIndex(SharedBuffer.getCounter());
-    int[] admitFlags = controlBuffer.getRow(rowIndex);
+    int[] admitFlags = controlBuffer.getRow(SharedBuffer.getCounter());
 
     for (int i = 0; i < admitFlags.length; i++) {
+
       if (admitFlags[i] == 1) { // Found the first TinyLFU admittor to consult
 
-
         return tinyLfuAdmittors[i].admit(candidateKey, victimKey);
-//        return tinyLfuAdmittors[i].admit(victimKey, candidateKey);
 
       }
     }

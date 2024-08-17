@@ -61,8 +61,9 @@ public class PolicyConstructor{
         // Create the custom configuration overrides as a string
          customConfigOverrides =
            "maximum-size = " + maxSize + "\n"+
-          "sampled.size = " + sampleSize + "\n" +
+          "sampled.size = " + maxSize + "\n" +
             "sampled.strategy = " + sampleStrategy;
+         System.out.println(customConfigOverrides);
         // Parse the custom configuration overrides
          customConfig = ConfigFactory.parseString(customConfigOverrides);
         // Combine the custom configuration with the existing one
@@ -73,7 +74,7 @@ public class PolicyConstructor{
           SampledPolicy.EvictionPolicy.LRU,
           combinedConfig
         );
-        sampledLruPolicy.admittor=GlobalAdmittor.getInstance(this.inConfig, IntraStats, 2, 1);
+        sampledLruPolicy.admittor=GlobalAdmittor.getInstance(this.inConfig, IntraStats, 3, 1);
 
         return sampledLruPolicy;
       //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -124,11 +125,13 @@ public class PolicyConstructor{
       //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       case "SegmentedLRU":
         // Extract the overriding values from the original config
-        percentProtected = this.inConfig.getInt("esp.segmented-lru.percent-protected");
+        percentProtected = this.inConfig.getDouble("esp.segmented-lru.percent-protected");
         // Create the custom configuration overrides as a string
         customConfigOverrides =
           "maximum-size = " + maxSize + "\n"+
-            "percent-protected = " + sampleSize;
+            "percent-protected = " + percentProtected;
+        System.out.println(customConfigOverrides);
+
         // Parse the custom configuration overrides
         customConfig = ConfigFactory.parseString(customConfigOverrides);
         // Combine the custom configuration with the existing one
@@ -136,7 +139,7 @@ public class PolicyConstructor{
         // Create a new SampledPolicy with the combined config
         SegmentedLruPolicy segmentedLruPolicy = new SegmentedLruPolicy(Admission.ALWAYS, combinedConfig);
 //        segmentedLruPolicy.admittor = PipelineTinyLfu.getInstance(this.inConfig, IntraStats);
-        segmentedLruPolicy.admittor =  GlobalAdmittor.getInstance(this.inConfig, IntraStats, 2, 1);
+        segmentedLruPolicy.admittor =  GlobalAdmittor.getInstance(this.inConfig, IntraStats, 3, 1);
 
         return segmentedLruPolicy;
 

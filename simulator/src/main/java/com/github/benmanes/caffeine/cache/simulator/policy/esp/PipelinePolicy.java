@@ -85,21 +85,30 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
       }
     }
     // Modify the second row to use the second TinyLFU sketch for Block 1
-    this.admission_flag_mat[1][1] = 1;
+    this.admission_flag_mat[2][2] = 1;
+//    this.admission_flag_mat[0][1] = 1;
+
+
+
     //--------------------------
     ControlBuffer.getInstance(pipeline_length).insertData(admission_flag_mat);
     ControlBuffer.setFlag();
     blockMaxSize= maximumSize/pipeline_length;
     this.admissionCounter =0;
-    this.globalAdmittor = GlobalAdmittor.getInstance(config,  new PolicyStats("GlobalAdmittor"), 2, 1);
+    this.globalAdmittor = GlobalAdmittor.getInstance(config,  new PolicyStats("GlobalAdmittor"), 3, 1);
 
 
     //-----------------BUILD THE PIPELINE-------------------
 //    policyConstructor = new PolicyConstructor(config);
     for (int i = 0; i < this.pipeline_length; i++) {
-      pipelinePolicies.add(this.policyConstructor.createPolicy(this.pipelineArray[i],blockMaxSize));
+      if(i==0 || i==1){
+        pipelinePolicies.add(this.policyConstructor.createPolicy(this.pipelineArray[i],(int)Math.round(maximumSize*0.01)));
+      }else {
+        pipelinePolicies.add(this.policyConstructor.createPolicy(this.pipelineArray[i],(int)Math.round(maximumSize*0.99)));
+//        pipelinePolicies.add(this.policyConstructor.createPolicy(this.pipelineArray[i],blockMaxSize));
 
 
+      }
     }
 
   }
@@ -112,11 +121,10 @@ public final class PipelinePolicy implements KeyOnlyPolicy {
 
     admissionCounter++;
     if(admissionCounter%10000==0){
-      System.out.println("Admission counter is "+admissionCounter);
-      ControlBuffer.setFlag();
+//      System.out.println("Admission counter is "+admissionCounter);
 //      this.admission_flag_mat[1][1] = 0;
 //      this.admission_flag_mat[0][0] = 1;
-
+      ControlBuffer.setFlag();
       ControlBuffer.getInstance(pipeline_length).insertData(admission_flag_mat);
 
     }

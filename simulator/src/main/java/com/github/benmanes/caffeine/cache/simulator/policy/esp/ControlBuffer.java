@@ -9,6 +9,7 @@ public class ControlBuffer {
   // Private constructor to prevent external instantiation
   private ControlBuffer(int pipelineLength) {
     // Initialize the matrix here
+    System.out.println(pipelineLength);
     this.flagMatrix = new int[pipelineLength][pipelineLength];
     // Initialize it with default values if necessary
     for (int i = 0; i < pipelineLength; i++) {
@@ -34,10 +35,10 @@ public class ControlBuffer {
     }
     return column;
   }
-  public int getSketchIndex(long key) {
+  public int getSketchIndex(int counter) {
     // Use some algorithm to map a key to a specific sketch index
     // For this example, let's just use modulus based on the number of sketches
-    return (int) (key % flagMatrix.length);
+    return counter;
   }
 
   // Method to insert data into a specific position in the matrix
@@ -51,6 +52,10 @@ public class ControlBuffer {
     if (rowIndex < 0 || rowIndex >= flagMatrix.length) {
       throw new IndexOutOfBoundsException("Invalid row index: " + rowIndex);
     }
+//    for(int i=0; i<flagMatrix[rowIndex].length; i++){
+//      System.out.println(flagMatrix[rowIndex][i]);
+//}
+//    System.out.println(flagMatrix[rowIndex]);
     return flagMatrix[rowIndex];
   }
 
